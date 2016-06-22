@@ -76,10 +76,11 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
             self.showToast('success', text, actionText, actionUrl);
         }
     };
-}).factory('configService', function(itemService, $filter) {
+}).factory('configService', function(itemService, thingService, $filter, itemRepository) {
     return {
         getRenderingModel : function(configParameters, configGroups) {
             var parameters = [];
+            var indexArray = [];
             if (!configGroups) {
                 configGroups = [];
             }
@@ -87,7 +88,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 "name" : "_default",
                 "label" : "Others"
             });
-            var indexArray = [];
+
             for (var j = 0; j < configGroups.length; j++) {
                 indexArray[configGroups[j].name] = j;
             }
@@ -99,7 +100,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 groupsList[j] = {};
                 groupsList[j].parameters = [];
             }
-            var itemsList;
+            var thingList;
             for (var i = 0; i < configParameters.length; i++) {
                 var parameter = configParameters[i];
 
@@ -110,16 +111,28 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 group = $filter('filter')(configGroups, {
                     name : parameter.groupName
                 }, true);
-                if (parameter.context && parameter.context.toUpperCase() === 'ITEM') {
-                    parameter.element = 'select';
-                    var self = this;
-                    itemService.getAll().$promise.then(function(items) {
-                        parameter.options = self.filterByAttributes(items, parameter.filterCriteria)
-                    });
-                } else if (parameter.context && parameter.context.toUpperCase() === 'SCRIPT') {
-                    parameter.element = 'textarea';
-                    parameter.inputType = 'text';
-                    parameter.label = parameter.label && parameter.label.length > 0 ? parameter.label : 'Script';
+
+                if (parameter.context) {
+                    if (parameter.context.toUpperCase() === 'ITEM') {
+                        parameter.element = 'select';
+                    } else if (parameter.context.toUpperCase() === 'DATE') {
+                        parameter.element = 'date';
+                    } else if (parameter.context.toUpperCase() === 'THING') {
+                        parameter.element = 'select';
+                        thingList = thingList === undefined ? thingService.getAll() : thingList;
+                        parameter.options = thingList;
+                    } else if (parameter.context.toUpperCase() === 'COLOR' || parameter.context.toUpperCase() === 'TIME') {
+                        parameter.element = 'input';
+                        parameter.input = "TEXT";
+                        parameter.inputType = parameter.context;
+                    } else if (parameter.context.toUpperCase() === 'SCRIPT') {
+                        parameter.element = 'textarea';
+                        parameter.inputType = 'text';
+                        parameter.label = parameter.label && parameter.label.length > 0 ? parameter.label : 'Script';
+                    } else {
+                        parameter.element = 'input';
+                        parameter.inputType = 'text';
+                    }
                 } else if (parameter.type.toUpperCase() === 'TEXT') {
                     if (parameter.options && parameter.options.length > 0) {
                         parameter.element = 'select';
@@ -156,10 +169,24 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                     parameters.push(groupsList[j]);
                 }
             }
-            return parameters;
+            return this.getItemConfigs(parameters);
+        },
+        getItemConfigs : function(configParameters) {
+            var self = this;
+            var parameterItems = $.grep(configParameters[0].parameters, function(value) {
+                return value.context && value.context.toUpperCase() == "ITEM";
+            });
+            if (parameterItems.length > 0) {
+                itemRepository.getAll(function(items) {
+                    for (var i = 0; i < parameterItems.length; i++) {
+                        parameterItems[i].options = self.filterByAttributes(items, parameterItems[i].filterCriteria);
+                    }
+                });
+            }
+            return configParameters;
         },
         filterByAttributes : function(arr, filters) {
-            if (!filters) {
+            if (!filters || filters.length == 0) {
                 return arr;
             }
             return $.grep(arr, function(element, i) {
@@ -181,10 +208,23 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 }).length == filters.length;
             });
         },
-        getConfigAsArray : function(config) {
+
+        getConfigAsArray : function(config, paramGroups) {
             var configArray = [];
+            var self = this;
             angular.forEach(config, function(value, name) {
                 var value = config[name];
+                if (paramGroups) {
+                    var param = self.getParameter(paramGroups, name);
+                    var date = Date.parse(value);
+                    if (param !== null && param.context && !isNaN(date)) {
+                        if (param.context.toUpperCase() === 'TIME') {
+                            value = value.getHours() + ':' + value.getMinutes() + ':' + value.getSeconds();
+                        } else if (param.context.toUpperCase() === 'DATE') {
+                            value = (value.getFullYear() + '-' + (value.getMonth() + 1) + '-' + value.getDate());
+                        }
+                    }
+                }
                 configArray.push({
                     name : name,
                     value : value
@@ -197,23 +237,39 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
 
             for (var i = 0; configArray && i < configArray.length; i++) {
                 var configEntry = configArray[i];
-                var param = getParameter(configEntry.name);
+                var param = this.getParameter(paramGroups, configEntry.name);
                 if (param !== null && param.type.toUpperCase() == "BOOLEAN") {
                     configEntry.value = String(configEntry.value).toUpperCase() == "TRUE";
-                }
-                config[configEntry.name] = configEntry.value;
-            }
-            function getParameter(itemName) {
-                for (var i = 0; i < paramGroups.length; i++) {
-                    for (var j = 0; paramGroups[i].parameters && j < paramGroups[i].parameters.length; j++) {
-                        if (paramGroups[i].parameters[j].name == itemName) {
-                            return paramGroups[i].parameters[j]
+                } else if (param !== null && param.context) {
+                    if (param.context.toUpperCase() === 'TIME') {
+                        var time = configEntry.value ? configEntry.value.split(/[\s\/,.:-]+/) : [];
+                        if (time.length > 1) {
+                            configEntry.value = new Date(1970, 0, 1, time[0], time[1], time.length > 2 ? time[2] : 0);
+                        } else {
+                            configEntry.value = null;
+                        }
+                    } else if (param.context.toUpperCase() === 'DATE') {
+                        var dateParts = configEntry.value ? configEntry.value.split(/[\s\/,.:-]+/) : [];
+                        if (dateParts.length > 2) {
+                            configEntry.value = new Date(dateParts[1] + '.' + dateParts[2] + '.' + dateParts[0]);
+                        } else {
+                            configEntry.value = null;
                         }
                     }
                 }
-                return null;
+                config[configEntry.name] = configEntry.value;
             }
             return config;
+        },
+        getParameter : function(paramGroups, itemName) {
+            for (var i = 0; i < paramGroups.length; i++) {
+                for (var j = 0; paramGroups[i].parameters && j < paramGroups[i].parameters.length; j++) {
+                    if (paramGroups[i].parameters[j].name == itemName) {
+                        return paramGroups[i].parameters[j]
+                    }
+                }
+            }
+            return null;
         },
         setDefaults : function(thing, thingType) {
             if (thingType && thingType.configParameters) {
@@ -222,7 +278,10 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                         if (parameter.type === 'TEXT') {
                             thing.configuration[parameter.name] = parameter.defaultValue
                         } else if (parameter.type === 'BOOLEAN') {
-                            thing.configuration[parameter.name] = new Boolean(parameter.defaultValue);
+                            var value = thing.configuration[parameter.name] != null && thing.configuration[parameter.name] != "" ? thing.configuration[parameter.name] : parameter.defaultValue != null ? parameter.defaultValue : "";
+                            if (String(value).length > 0) {
+                                thing.configuration[parameter.name] = String(value).toUpperCase() == "TRUE";
+                            }
                         } else if (parameter.type === 'INTEGER' || parameter.type === 'DECIMAL') {
                             thing.configuration[parameter.name] = parseInt(parameter.defaultValue);
                         } else {
@@ -234,11 +293,43 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 });
             }
         },
-        setConfigDefaults : function(configuration, groups) {
+        setConfigDefaults : function(originalConfiguration, groups, sending) {
+            var configuration = {};
+            angular.copy(originalConfiguration, configuration);
             for (var i = 0; i < groups.length; i++) {
                 $.each(groups[i].parameters, function(i, parameter) {
                     var hasValue = configuration[parameter.name] != null && String(configuration[parameter.name]).length > 0;
-                    if (!hasValue && parameter.type === 'TEXT') {
+                    if (parameter.context && (parameter.context.toUpperCase() === 'DATE' || parameter.context.toUpperCase() === 'TIME')) {
+                        var date = hasValue ? configuration[parameter.name] : parameter.defaultValue ? parameter.defaultValue : null;
+                        if (date) {
+                            if (typeof sending !== "undefined" && sending) {
+                                if (parameter.context.toUpperCase() === 'DATE') {
+                                    configuration[parameter.name] = date instanceof Date ? (date.getFullYear() + '-' + (date.getMonth() + 1) + '-' + date.getDate()) : date;
+                                } else {
+                                    configuration[parameter.name] = date instanceof Date ? date.getHours() + ':' + date.getMinutes() + ':' + date.getSeconds() : date;
+                                }
+                            } else {
+                                if (parameter.context.toUpperCase() === 'TIME') {
+                                    var time = date.split(/[\s\/,.:-]+/);
+                                    if (time.length > 1) {
+                                        configuration[parameter.name] = new Date(1970, 0, 1, time[0], time[1], time.length > 2 ? time[2] : 0);
+                                    } else {
+                                        configuration[parameter.name] = null;
+                                    }
+                                } else {
+                                    var dateParts = date.split(/[\s\/,.:-]+/);
+                                    if (dateParts.length > 2) {
+                                        configuration[parameter.name] = new Date(dateParts[1] + '-' + dateParts[2] + '-' + dateParts[0]);
+                                    } else {
+                                        configuration[parameter.name] = null;
+                                    }
+                                }
+                            }
+                        }
+
+                    } else if (parameter.context && (parameter.context.toUpperCase() === 'COLOR')) {
+                        configuration[parameter.name] = "#ffffff";
+                    } else if (!hasValue && parameter.type === 'TEXT') {
                         configuration[parameter.name] = parameter.defaultValue
                     } else if (parameter.type === 'BOOLEAN') {
                         var value = hasValue ? configuration[parameter.name] : parameter.defaultValue;
@@ -254,19 +345,12 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
             }
             return configuration;
         },
-        convertValues : function(configurations) {
+        convertValues : function(configurations, parameters) {
             angular.forEach(configurations, function(value, name) {
                 if (value && typeof (value) !== "boolean") {
                     var parsedValue = Number(value);
                     if (isNaN(parsedValue)) {
-                        if (value.toUpperCase() == 'TRUE') {
-                            configurations[name] = true;
-                        } else if (value.toUpperCase() == 'FALSE') {
-                            configurations[name] = false;
-                        } else {
-                            configurations[name] = value;
-                        }
-
+                        configurations[name] = value;
                     } else {
                         configurations[name] = parsedValue;
                     }
@@ -288,7 +372,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
         getThingChannels : function(thing, thingType, channelTypes, advanced) {
             var thingChannels = [];
             var includedChannels = [];
-            if (thingType.channelGroups && thingType.channelGroups.length > 0) {
+            if (thingType && thingType.channelGroups && thingType.channelGroups.length > 0) {
                 for (var i = 0; i < thingType.channelGroups.length; i++) {
                     var group = {};
                     group.name = thingType.channelGroups[i].label;

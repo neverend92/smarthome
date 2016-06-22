@@ -169,7 +169,7 @@ angular.module('PaperUI.controllers.setup', []).controller('SetupPageController'
     bindingRepository.getAll(function(data) {
     });
 
-}).controller('ManualSetupConfigureController', function($scope, $routeParams, $mdDialog, toastService, bindingRepository, thingTypeRepository, thingService, thingRepository, configService, linkService) {
+}).controller('ManualSetupConfigureController', function($scope, $routeParams, $mdDialog, $location, toastService, bindingRepository, thingTypeRepository, thingService, thingRepository, configService, linkService) {
 
     var thingTypeUID = $routeParams.thingTypeUID;
 
@@ -198,9 +198,11 @@ angular.module('PaperUI.controllers.setup', []).controller('SetupPageController'
     $scope.addThing = function(thing) {
         thing.thingTypeUID = thingTypeUID;
         thing.UID = thing.thingTypeUID + ":" + thing.ID;
+        thing.configuration = configService.setConfigDefaults(thing.configuration, $scope.parameters, true);
         thingService.add(thing, function() {
             toastService.showDefaultToast('Thing added.', 'Show Thing', 'configuration/things/view/' + thing.UID);
-            $scope.navigateTo('setup/search/' + $scope.thingType.UID.split(':')[0]);
+            window.localStorage.setItem('thingUID', thing.UID);
+            $location.path('configuration/things');
         });
     };
 
