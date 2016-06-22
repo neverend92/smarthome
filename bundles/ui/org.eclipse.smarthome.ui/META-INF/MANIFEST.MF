@@ -18,7 +18,9 @@ Import-Package: javax.imageio,
  org.apache.commons.lang,
  org.eclipse.emf.common.util,
  org.eclipse.emf.ecore,
+ org.eclipse.smarthome.core.auth,
  org.eclipse.smarthome.core.common.registry,
+ org.eclipse.smarthome.core.internal.auth,
  org.eclipse.smarthome.core.items,
  org.eclipse.smarthome.core.library.items,
  org.eclipse.smarthome.core.library.types,
@@ -31,6 +33,7 @@ Import-Package: javax.imageio,
  org.eclipse.smarthome.model.sitemap,
  org.osgi.framework,
  org.osgi.service.cm,
+ org.osgi.service.component;version="1.2.2",
  org.osgi.service.http,
  org.slf4j
 Bundle-ClassPath: .,
@@ -40,4 +43,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Export-Package: org.eclipse.smarthome.ui.chart,
  org.eclipse.smarthome.ui.items
 Service-Component: OSGI-INF/genericitemuiprovider.xml, OSGI-INF/itemuiregistry.xml,
- OSGI-INF/proxy.xml, OSGI-INF/chartservlet.xml, OSGI-INF/chartprovider.xml
+ OSGI-INF/proxy.xml, OSGI-INF/chartservlet.xml, OSGI-INF/chartprovider.xml, OSGI-INF/authservice.xml

@@ -186,7 +186,20 @@ public class ItemRegistryImpl extends AbstractRegistry<Item, String>implements I
      */
     @Override
     public Collection<Item> getItems() {
-        return getAll();
+        // we must test here, if authenticated user is allowed to use the items.
+        logger.debug("### get all items");
+        Collection<Item> allItems = getAll();
+
+        /*
+         * Map<Provider<Item>, Collection<Item>> elementMap = new ConcurrentHashMap<Provider<Item>, Collection<Item>>();
+         * Collection<Item> filteredItems = ImmutableList.copyOf(Iterables.concat(elementMap.values()));
+         * ;
+         * 
+         * for (Item item : allItems) {
+         * filteredItems.add(item);
+         * }
+         */
+        return allItems;
     }
 
     @Override
