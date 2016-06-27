@@ -184,7 +184,8 @@ public class Printer {
         ruleProperty.set(1, getTagsRecord(rule.getTags()));
         ruleContent.add(Utils.getRow(columnWidths, ruleProperty));
 
-        ruleContent.addAll(collectRecords(columnWidths, CONFIGURATION, rule.getConfiguration().entrySet()));
+        ruleContent.addAll(
+                collectRecords(columnWidths, CONFIGURATION, rule.getConfiguration().getProperties().entrySet()));
         ruleContent.addAll(collectRecords(columnWidths, CONFIGURATION_DESCRIPTIONS,
                 getConfigurationDescriptionRecords(rule.getConfigurationDescriptions())));
         ruleContent.addAll(collectRecords(columnWidths, TRIGGERS, rule.getTriggers()));
@@ -422,7 +423,8 @@ public class Printer {
         columnValues.set(1, module.getTypeUID());
         moduleContent.add(Utils.getRow(columnWidths, columnValues));
 
-        moduleContent.addAll(collectRecords(columnWidths, CONFIGURATION, module.getConfiguration().entrySet()));
+        moduleContent.addAll(
+                collectRecords(columnWidths, CONFIGURATION, module.getConfiguration().getProperties().entrySet()));
         Map<String, String> inputs = null;
         if (module instanceof Condition) {
             inputs = ((Condition) module).getInputs();
@@ -446,13 +448,15 @@ public class Printer {
     }
 
     private static String getInputRecord(Input input) {
-        return "  name=\"" + input.getName() + "\", type=\"" + input.getType() + "\", "
+        return "  name=\"" + input.getName() + "\", label=\"" + input.getLabel() + "\", decription=\""
+                + input.getDescription() + "\", type=\"" + input.getType() + "\", "
                 + (input.isRequired() ? REQUIRED : NOT_REQUIRED)
                 + (input.getDefaultValue() != null ? "\", default=\"" + input.getDefaultValue() : "");
     }
 
     private static String getOutputRecord(Output output) {
-        return "  name=\"" + output.getName() + "\", type=\"" + output.getType() + "\"";
+        return "  name=\"" + output.getName() + "\", label=\"" + output.getLabel() + "\", decription=\""
+                + output.getDescription() + "\", type=\"" + output.getType() + "\"";
     }
 
     /**
