@@ -41,6 +41,8 @@ import org.osgi.util.tracker.ServiceTracker;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import com.google.common.collect.ImmutableList;
+
 /**
  * This is the main implementing class of the {@link ItemRegistry} interface. It
  * keeps track of all declared items of all item providers and keeps their
@@ -187,19 +189,16 @@ public class ItemRegistryImpl extends AbstractRegistry<Item, String>implements I
     @Override
     public Collection<Item> getItems() {
         // we must test here, if authenticated user is allowed to use the items.
-        logger.debug("### get all items");
         Collection<Item> allItems = getAll();
 
-        /*
-         * Map<Provider<Item>, Collection<Item>> elementMap = new ConcurrentHashMap<Provider<Item>, Collection<Item>>();
-         * Collection<Item> filteredItems = ImmutableList.copyOf(Iterables.concat(elementMap.values()));
-         * ;
-         * 
-         * for (Item item : allItems) {
-         * filteredItems.add(item);
-         * }
-         */
-        return allItems;
+        ArrayList<Item> filteredItems = new ArrayList<Item>();
+
+        for (Item item : allItems) {
+            filteredItems.add(item);
+        }
+
+        Collection<Item> returnedItems = ImmutableList.copyOf(filteredItems);
+        return returnedItems;
     }
 
     @Override
