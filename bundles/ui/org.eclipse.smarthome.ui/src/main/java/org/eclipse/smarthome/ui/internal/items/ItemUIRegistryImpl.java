@@ -933,27 +933,26 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
     @Override
     public boolean getVisiblity(Widget w) {
         Item item;
-        /*
-         * try {
-         * item = itemRegistry.getItem(w.getItem());
-         * 
-         * // check if current user is allowed to see the item.
-         * ArrayList<String> allowedItems = new ArrayList<String>();
-         * allowedItems.add("gFF");
-         * 
-         * if (!isItemAllowed(item, allowedItems)) {
-         * logger.debug("### Item {} was not displayed", item.getName());
-         * return false;
-         * }
-         * 
-         * } catch (ItemNotFoundException e) {
-         * logger.error("Cannot retrieve visibility item {} for widget {}", w.getItem(),
-         * w.eClass().getInstanceTypeName());
-         * 
-         * // Default to visible!
-         * return true;
-         * }
-         */
+
+        try {
+            item = itemRegistry.getItem(w.getItem());
+
+            // check if current user is allowed to see the item.
+            ArrayList<String> allowedItems = new ArrayList<String>();
+            allowedItems.add("gFF");
+
+            if (!isItemAllowed(item, allowedItems)) {
+                logger.debug("### Item {} was not displayed", item.getName());
+                return false;
+            }
+
+        } catch (ItemNotFoundException e) {
+            logger.error("Cannot retrieve visibility item {} for widget {}", w.getItem(),
+                    w.eClass().getInstanceTypeName());
+
+            // Default to visible!
+            return true;
+        }
 
         // Default to visible if parameters not set
         List<VisibilityRule> ruleList = w.getVisibility();
@@ -1012,19 +1011,19 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         if (allowedItems.contains(item.getName())) {
             return true;
         }
-        while (item.getGroupNames().size() > 0) {
+
+        if (item.getGroupNames().size() > 0) {
             for (String groupName : item.getGroupNames()) {
                 if (allowedItems.contains(groupName)) {
                     return true;
                 }
 
                 try {
-                    item = itemRegistry.getItem(groupName);
+                    return isItemAllowed(itemRegistry.getItem(groupName), allowedItems);
                 } catch (ItemNotFoundException e) {
                     logger.debug("#### Item {} not found.", groupName);
                 }
             }
-
         }
 
         return false;
