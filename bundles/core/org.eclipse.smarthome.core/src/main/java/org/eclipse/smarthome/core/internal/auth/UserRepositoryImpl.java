@@ -8,7 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.ArrayUtils;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.smarthome.core.auth.User;
 import org.eclipse.smarthome.core.auth.UserRepository;
@@ -96,14 +95,17 @@ public class UserRepositoryImpl implements UserRepository {
         User user = new UserImpl();
         String credentials = content[0];
         if (credentials.indexOf(":") != -1) {
-            user.setUsername(StringUtils.substringBefore(credentials, ":"));
-            user.setPassword(StringUtils.substringAfter(credentials, ":"));
+            user.setUsername(StringUtils.substringBefore(credentials, ":").trim());
+            user.setPassword(StringUtils.substringAfter(credentials, ":").trim());
         } else {
             return null;
         }
 
         if (content.length > 1) {
-            user.setRoles((String[]) ArrayUtils.remove(content, 0));
+            String[] roles = new String[content.length - 1];
+            for (int i = 0; i < roles.length; i++) {
+                roles[i] = content[i + 1].trim();
+            }
         } else {
             user.setRoles(new String[0]);
         }
