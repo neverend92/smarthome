@@ -59,8 +59,19 @@ public class AuthServlet extends HttpServlet {
             innerContent = getFormTemplate(session);
         } else {
             // show logout button.
-            String username = auth.getUsername();
-            innerContent = logoutTemplate.replace("###username###", username);
+            innerContent = logoutTemplate.replace("###username###", auth.getUsername());
+
+            String roles = "";
+            boolean isFirst = true;
+            for (String role : auth.getRoles()) {
+                if (!isFirst) {
+                    roles += ", ";
+                } else {
+                    isFirst = false;
+                }
+                roles += role;
+            }
+            innerContent = innerContent.replace("###roles###", roles);
         }
 
         String sessionId = session.getId();
