@@ -121,6 +121,13 @@ public class ThingHelper {
             builder.withLabel(thing.getLabel());
         }
 
+        // Update the location
+        if (updatedContents.location != null) {
+            builder.withLocation(updatedContents.location);
+        } else {
+            builder.withLocation(thing.getLocation());
+        }
+
         // update bridge UID
         if (updatedContents.bridgeUID != null) {
             builder.withBridge(new ThingUID(updatedContents.bridgeUID));
@@ -149,6 +156,12 @@ public class ThingHelper {
             }
         } else {
             builder.withChannels(thing.getChannels());
+        }
+
+        if (updatedContents.location != null) {
+            builder.withLocation(updatedContents.location);
+        } else {
+            builder.withLocation(thing.getLocation());
         }
 
         Thing mergedThing = builder.build();
