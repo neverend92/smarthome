@@ -32,46 +32,39 @@ public class AuthServlet extends HttpServlet {
 
     @Override
     protected void doGet(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        logger.debug("Received incoming auth (GET) request ", req);
+        logger.debug("Received incoming auth (GET) request {}", req);
+
+        String innerContent = "";
 
         HttpSession session = req.getSession();
+        // set session timeout to 30min.
+        if (session.isNew()) {
+            session.setMaxInactiveInterval(30 * 60);
+        }
 
+        // check if logout action was triggered.
         String action = req.getParameter("action");
         if (action != null && action.equals("logout")) {
             session.removeAttribute("auth");
             logger.debug("Logout User");
             res.sendRedirect("/");
+            return;
         }
 
+        // check for authenticated user.
         Authentication auth = (Authentication) session.getAttribute("auth");
-
-        String innerContent;
 
         if (auth == null) {
             // show login form.
-            StringBuilder errors = new StringBuilder();
-            Object tmpError = session.getAttribute("errors");
-            if (tmpError != null) {
-                errors.append("<div class=\"alert alert-danger\" role=\"alert\">");
-                errors.append(tmpError);
-                errors.append("</div>");
-            }
-
-            innerContent = formTemplate.replace("<!--ERRORS-->", errors);
-
-            String username = "";
-            Object tmpUsername = session.getAttribute("username");
-            if (tmpUsername != null) {
-                username = tmpUsername.toString();
-            }
-
-            innerContent = innerContent.replace("###username###", username);
-
+            innerContent = getFormTemplate(session);
         } else {
             // show logout button.
             String username = auth.getUsername();
             innerContent = logoutTemplate.replace("###username###", username);
         }
+
+        String sessionId = session.getId();
+        innerContent = innerContent.replace("###sessionId###", sessionId);
 
         res.setContentType("text/html;charset=UTF-8");
         res.getWriter().append(indexTemplate.replace("<!--INNERCONTENT-->", innerContent));
@@ -83,29 +76,36 @@ public class AuthServlet extends HttpServlet {
 
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
-        logger.debug("Received incoming auth (POST) request ", req);
+        logger.debug("Received incoming auth (POST) request {}", req);
+
+        HttpSession session = req.getSession();
+        // set session timeout to 30min.
+        if (session.isNew()) {
+            session.setMaxInactiveInterval(30 * 60);
+        }
 
         String username = req.getParameter("username");
         String password = req.getParameter("password");
 
         logger.debug("### " + username + ":" + password);
 
-        HttpSession session = req.getSession();
-
         // do auth check...
         UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username, password);
-        AuthenticationProviderImpl authProvider = new AuthenticationProviderImpl();
-        Authentication auth = authProvider.authenticate(creds);
+        Authentication auth = new AuthenticationProviderImpl().authenticate(creds);
 
         if (auth == null) {
             session.setAttribute("errors", "Wrong credentials passed. Try again.");
             session.setAttribute("username", username);
             res.sendRedirect("/auth/login");
+            return;
         } else {
             session.setAttribute("auth", auth);
 
+            // check for last requested page.
             Object last_uri = session.getAttribute("last_uri");
 
+            // if page was set, redirect to this page.
+            // else redirect to default root page.
             if (last_uri != null) {
                 session.removeAttribute("last_uri");
                 res.sendRedirect(last_uri.toString());
@@ -114,5 +114,27 @@ public class AuthServlet extends HttpServlet {
             }
             return;
         }
+    }
+
+    private String getFormTemplate(HttpSession session) {
+        StringBuilder errors = new StringBuilder();
+        Object tmpError = session.getAttribute("errors");
+        if (tmpError != null) {
+            errors.append("<div class=\"alert alert-danger\" role=\"alert\">");
+            errors.append(tmpError);
+            errors.append("</div>");
+        }
+
+        String innerContent = formTemplate.replace("<!--ERRORS-->", errors);
+
+        String username = "";
+        Object tmpUsername = session.getAttribute("username");
+        if (tmpUsername != null) {
+            username = tmpUsername.toString();
+        }
+
+        innerContent = innerContent.replace("###username###", username);
+
+        return innerContent;
     }
 }

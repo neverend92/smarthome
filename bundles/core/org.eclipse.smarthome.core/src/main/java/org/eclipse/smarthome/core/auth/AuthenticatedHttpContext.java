@@ -19,20 +19,22 @@ public class AuthenticatedHttpContext implements HttpContext {
     }
 
     @Override
-    public boolean handleSecurity(HttpServletRequest request, HttpServletResponse response) throws IOException {
-        // AuthenticationProvider provider;
-
-        HttpSession session = request.getSession();
+    public boolean handleSecurity(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        HttpSession session = req.getSession();
+        // set session timeout to 30min.
+        if (session.isNew()) {
+            session.setMaxInactiveInterval(30 * 60);
+        }
 
         Authentication auth = (Authentication) session.getAttribute("auth");
 
         if (auth == null) {
             // redirect to login page.
-            session.setAttribute("last_uri", request.getRequestURI());
-            response.sendRedirect("/auth/login");
+            session.setAttribute("last_uri", req.getRequestURI());
+            res.sendRedirect("/auth/login");
             return false;
         }
-        // response.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+
         return true;
     }
 
