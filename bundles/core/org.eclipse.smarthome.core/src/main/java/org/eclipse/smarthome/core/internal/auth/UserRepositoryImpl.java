@@ -106,6 +106,7 @@ public class UserRepositoryImpl implements UserRepository {
             for (int i = 0; i < roles.length; i++) {
                 roles[i] = content[i + 1].trim();
             }
+            user.setRoles(roles);
         } else {
             user.setRoles(new String[0]);
         }
