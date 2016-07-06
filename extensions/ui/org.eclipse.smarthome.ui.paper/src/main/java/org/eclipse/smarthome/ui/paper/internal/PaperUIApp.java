@@ -7,6 +7,7 @@
  */
 package org.eclipse.smarthome.ui.paper.internal;
 
+import org.eclipse.smarthome.core.auth.AuthenticatedHttpContext;
 import org.osgi.service.component.ComponentContext;
 import org.osgi.service.http.HttpService;
 import org.osgi.service.http.NamespaceException;
@@ -27,7 +28,9 @@ public class PaperUIApp {
 
     protected void activate(ComponentContext componentContext) {
         try {
-            httpService.registerResources(WEBAPP_ALIAS, "web", null);
+            AuthenticatedHttpContext authHttpContext = new AuthenticatedHttpContext(
+                    componentContext.getBundleContext());
+            httpService.registerResources(WEBAPP_ALIAS, "web", authHttpContext);
             logger.info("Started Paper UI at " + WEBAPP_ALIAS);
         } catch (NamespaceException e) {
             logger.error("Error during servlet startup", e);

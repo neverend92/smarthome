@@ -9,4 +9,6 @@ public interface Authentication {
     public String[] getRoles();
 
     public void setRoles(String[] roles);
+
+    public boolean hasRole(String role);
 }

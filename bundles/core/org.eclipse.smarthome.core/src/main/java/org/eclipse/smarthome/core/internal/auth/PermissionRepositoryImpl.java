@@ -9,19 +9,19 @@ import java.util.List;
 
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang.StringUtils;
-import org.eclipse.smarthome.core.auth.User;
-import org.eclipse.smarthome.core.auth.UserRepository;
+import org.eclipse.smarthome.core.auth.Permission;
+import org.eclipse.smarthome.core.auth.PermissionRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class UserRepositoryImpl implements UserRepository {
+public class PermissionRepositoryImpl implements PermissionRepository {
 
-    private ArrayList<User> users;
+    private ArrayList<Permission> permissions;
 
     private final Logger logger = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
-    public UserRepositoryImpl() {
-        this.users = new ArrayList<User>();
+    public PermissionRepositoryImpl() {
+        this.permissions = new ArrayList<Permission>();
         this.readConfigs();
     }
 
@@ -42,22 +42,22 @@ public class UserRepositoryImpl implements UserRepository {
     }
 
     private void processConfigFile(File configFile) throws FileNotFoundException, IOException {
-        if (configFile.isDirectory() || !configFile.getName().equals("users.cfg")) {
+        if (configFile.isDirectory() || !configFile.getName().equals("permissions.cfg")) {
             return;
         }
-        logger.debug("Processing users file '{}'", configFile.getName());
+        logger.debug("Processing permissions file '{}'", configFile.getName());
 
         List<String> lines = IOUtils.readLines(new FileInputStream(configFile));
 
         for (String line : lines) {
-            User user = parseLine(line);
-            if (user != null) {
-                this.users.add(user);
+            Permission permission = parseLine(line);
+            if (permission != null) {
+                this.permissions.add(permission);
             }
         }
     }
 
-    private User parseLine(final String line) {
+    private Permission parseLine(final String line) {
         String trimmedLine = line.trim();
         if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
             return null;
@@ -68,36 +68,30 @@ public class UserRepositoryImpl implements UserRepository {
             return null;
         }
 
-        User user = new UserImpl();
-        String credentials = content[0];
-        if (credentials.indexOf(":") != -1) {
-            user.setUsername(StringUtils.substringBefore(credentials, ":").trim());
-            user.setPassword(StringUtils.substringAfter(credentials, ":").trim());
-        } else {
-            return null;
-        }
+        Permission permission = new PermissionImpl();
+        permission.setReqUrl(content[0]);
 
         if (content.length > 1) {
             String[] roles = new String[content.length - 1];
             for (int i = 0; i < roles.length; i++) {
                 roles[i] = content[i + 1].trim();
             }
-            user.setRoles(roles);
+            permission.setRoles(roles);
         } else {
-            user.setRoles(new String[0]);
+            permission.setRoles(new String[0]);
         }
 
-        return user;
+        return permission;
     }
 
     @Override
-    public User get(String name) {
-        for (User user : this.users) {
-            if (user.getUsername().equals(name)) {
-                return user;
+    public Permission get(String name) {
+        for (Permission permission : this.permissions) {
+            if (permission.getReqUrl().equals(name)) {
+                return permission;
             }
         }
-        logger.debug("User with name '{}' not found", name);
+        logger.debug("Permission with name '{}' not found", name);
         return null;
     }
 

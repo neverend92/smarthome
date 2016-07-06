@@ -4,6 +4,8 @@ import org.apache.commons.httpclient.Credentials;
 
 public interface AuthenticationProvider {
 
-    Authentication authenticate(Credentials credentials);
+    public Authentication authenticate(Credentials credentials);
+
+    public boolean isAllowed(Authentication auth, String reqUrl);
 
 }

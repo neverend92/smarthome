@@ -11,7 +11,9 @@ import javax.servlet.Servlet;
 import javax.servlet.ServletConfig;
 import javax.servlet.ServletException;
 
+import org.eclipse.smarthome.core.auth.AuthenticatedHttpContext;
 import org.eclipse.smarthome.core.items.ItemRegistry;
+import org.eclipse.smarthome.ui.classic.internal.WebAppActivator;
 import org.osgi.service.http.HttpContext;
 import org.osgi.service.http.HttpService;
 
@@ -46,12 +48,12 @@ public abstract class BaseServlet implements Servlet {
 
     /**
      * Creates a {@link HttpContext}
-     * 
+     *
      * @return a {@link HttpContext}
      */
     protected HttpContext createHttpContext() {
-        HttpContext defaultHttpContext = httpService.createDefaultHttpContext();
-        return defaultHttpContext;
+        AuthenticatedHttpContext authHttpContext = new AuthenticatedHttpContext(WebAppActivator.getContext());
+        return authHttpContext;
     }
 
     /**

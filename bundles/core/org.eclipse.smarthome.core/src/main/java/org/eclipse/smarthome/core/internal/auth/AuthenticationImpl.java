@@ -37,4 +37,14 @@ public class AuthenticationImpl implements Authentication {
         this.roles = roles;
     }
 
+    @Override
+    public boolean hasRole(String role) {
+        for (String tmpRole : this.roles) {
+            if (tmpRole.equals(role)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
 }
