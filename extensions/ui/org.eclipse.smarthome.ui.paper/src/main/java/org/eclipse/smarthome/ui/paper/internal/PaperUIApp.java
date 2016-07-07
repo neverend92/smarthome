@@ -27,9 +27,10 @@ public class PaperUIApp {
     protected HttpService httpService;
 
     protected void activate(ComponentContext componentContext) {
+
         try {
             AuthenticatedHttpContext authHttpContext = new AuthenticatedHttpContext(
-                    componentContext.getBundleContext());
+                    componentContext.getBundleContext().getBundle());
             httpService.registerResources(WEBAPP_ALIAS, "web", authHttpContext);
             logger.info("Started Paper UI at " + WEBAPP_ALIAS);
         } catch (NamespaceException e) {

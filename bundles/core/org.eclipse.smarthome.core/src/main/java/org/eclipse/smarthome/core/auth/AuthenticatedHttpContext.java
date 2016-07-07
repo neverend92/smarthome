@@ -7,7 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.osgi.framework.BundleContext;
+import org.osgi.framework.Bundle;
 import org.osgi.service.http.HttpContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -16,10 +16,10 @@ public class AuthenticatedHttpContext implements HttpContext {
 
     private final Logger logger = LoggerFactory.getLogger(AuthenticatedHttpContext.class);
 
-    private BundleContext context;
+    private Bundle bundle;
 
-    public AuthenticatedHttpContext(BundleContext context) {
-        this.context = context;
+    public AuthenticatedHttpContext(Bundle bundle) {
+        this.bundle = bundle;
     }
 
     @Override
@@ -53,13 +53,14 @@ public class AuthenticatedHttpContext implements HttpContext {
 
     @Override
     public URL getResource(String name) {
-        URL url = this.context.getBundle().getResource(name);
+        URL url = this.bundle.getResource(name);
         logger.debug("### Requested Resource: {}, Resource URL: {}", name, url);
         return url;
     }
 
     @Override
     public String getMimeType(String name) {
+        logger.debug("### Requested Resource: {}, Mimetype: {}", name, null);
         return null;
     }
 

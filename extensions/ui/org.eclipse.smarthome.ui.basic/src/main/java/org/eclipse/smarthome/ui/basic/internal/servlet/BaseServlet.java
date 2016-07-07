@@ -52,7 +52,8 @@ public abstract class BaseServlet implements Servlet {
      * @return a {@link HttpContext}
      */
     protected HttpContext createHttpContext() {
-        AuthenticatedHttpContext authHttpContext = new AuthenticatedHttpContext(WebAppActivator.getContext());
+        AuthenticatedHttpContext authHttpContext = new AuthenticatedHttpContext(
+                WebAppActivator.getContext().getBundle());
         return authHttpContext;
     }
 
