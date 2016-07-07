@@ -7,6 +7,7 @@ Bundle-ManifestVersion: 2
 Bundle-License: http://www.eclipse.org/legal/epl-v10.html
 Import-Package: com.google.gson,
  javax.servlet,
+ javax.servlet.http;version="2.6.0",
  org.apache.commons.io,
  org.apache.commons.lang,
  org.apache.commons.net.util,

@@ -13,6 +13,7 @@ import java.util.List;
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
+import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.model.sitemap.Frame;
 import org.eclipse.smarthome.model.sitemap.Sitemap;
 import org.eclipse.smarthome.model.sitemap.Widget;
@@ -39,6 +40,8 @@ public class PageRenderer extends AbstractWidgetRenderer {
 
     List<WidgetRenderer> widgetRenderers = new ArrayList<WidgetRenderer>();
 
+    private Authentication auth;
+
     public void addWidgetRenderer(WidgetRenderer widgetRenderer) {
         widgetRenderer.setConfig(config);
         widgetRenderers.add(widgetRenderer);
@@ -46,6 +49,10 @@ public class PageRenderer extends AbstractWidgetRenderer {
 
     public void removeWidgetRenderer(WidgetRenderer widgetRenderer) {
         widgetRenderers.remove(widgetRenderer);
+    }
+
+    public void setAuthentication(Authentication auth) {
+        this.auth = auth;
     }
 
     /**
@@ -157,7 +164,7 @@ public class PageRenderer extends AbstractWidgetRenderer {
     @Override
     public EList<Widget> renderWidget(Widget w, StringBuilder sb) throws RenderException {
         // Check if this widget is visible
-        if (itemUIRegistry.getVisiblity(w) == false) {
+        if (itemUIRegistry.getVisiblity(w, this.auth) == false) {
             return null;
         }
 

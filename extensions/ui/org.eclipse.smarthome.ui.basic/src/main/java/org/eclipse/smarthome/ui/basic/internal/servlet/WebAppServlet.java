@@ -19,8 +19,10 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
+import javax.servlet.http.HttpServletRequest;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.Item;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
@@ -117,6 +119,9 @@ public class WebAppServlet extends BaseServlet {
     @Override
     public void service(ServletRequest req, ServletResponse res) throws ServletException, IOException {
         logger.debug("Servlet request received!");
+
+        HttpServletRequest httpReq = (HttpServletRequest) req;
+        this.renderer.setAuthentication((Authentication) httpReq.getSession().getAttribute("auth"));
 
         // read request parameters
         String sitemapName = req.getParameter("sitemap");

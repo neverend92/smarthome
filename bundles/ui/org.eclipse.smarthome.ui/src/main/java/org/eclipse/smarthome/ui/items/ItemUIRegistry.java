@@ -8,6 +8,7 @@
 package org.eclipse.smarthome.ui.items;
 
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.types.State;
 import org.eclipse.smarthome.model.sitemap.LinkableWidget;
@@ -126,9 +127,10 @@ public interface ItemUIRegistry extends ItemRegistry, ItemUIProvider {
      *
      * @param w
      *            Widget
+     * @param auth
      * @return true if the item is visible
      */
-    public boolean getVisiblity(Widget w);
+    public boolean getVisiblity(Widget w, Authentication auth);
 
     /**
      * Gets the item state

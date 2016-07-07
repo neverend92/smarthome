@@ -19,6 +19,7 @@ import java.util.regex.Pattern;
 
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.common.registry.RegistryChangeListener;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.GroupItem;
@@ -931,7 +932,7 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
      * {@inheritDoc}
      */
     @Override
-    public boolean getVisiblity(Widget w) {
+    public boolean getVisiblity(Widget w, Authentication auth) {
         Item item;
 
         try {
@@ -939,7 +940,9 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
 
             // check if current user is allowed to see the item.
             ArrayList<String> allowedItems = new ArrayList<String>();
-            allowedItems.add("gFF");
+            for (String role : auth.getRoles()) {
+                allowedItems.add(role);
+            }
 
             if (!isItemAllowed(item, allowedItems)) {
                 logger.debug("### Item {} was not displayed", item.getName());
@@ -1008,6 +1011,11 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
     }
 
     private boolean isItemAllowed(Item item, ArrayList<String> allowedItems) {
+        // admin is of course allowed.
+        if (allowedItems.contains("admin")) {
+            return true;
+        }
+
         if (allowedItems.contains(item.getName())) {
             return true;
         }
