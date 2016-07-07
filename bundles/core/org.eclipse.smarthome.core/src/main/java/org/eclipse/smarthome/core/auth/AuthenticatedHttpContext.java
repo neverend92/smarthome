@@ -7,6 +7,7 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
+import org.eclipse.smarthome.core.internal.auth.PermissionRepositoryImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.HttpContext;
 import org.slf4j.Logger;
@@ -47,6 +48,20 @@ public class AuthenticatedHttpContext implements HttpContext {
 
         // there is a valid authentication
         // but check if user is allowed to see specific content.
+        PermissionRepository repo = new PermissionRepositoryImpl();
+        Permission permission = repo.get(reqUrl);
+
+        if (permission == null) {
+            res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+            return false;
+        }
+
+        if (permission.getRoles().length > 0) {
+            if (!AuthUtils.hasRoleMatch(permission.getRoles(), auth.getRoles())) {
+                res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
+                return false;
+            }
+        }
 
         return true;
     }

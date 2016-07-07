@@ -86,8 +86,18 @@ public class PermissionRepositoryImpl implements PermissionRepository {
 
     @Override
     public Permission get(String name) {
+        // cut of parameter.
+        int idx = name.indexOf('?');
+        if (idx != -1) {
+            name = name.substring(0, idx);
+        }
+        idx = name.indexOf('#');
+        if (idx != -1) {
+            name = name.substring(0, idx);
+        }
+
         for (Permission permission : this.permissions) {
-            if (permission.getReqUrl().equals(name)) {
+            if (permission.getReqUrl().equals(name) || permission.getReqUrl().equals(name.substring(2))) {
                 return permission;
             }
         }
