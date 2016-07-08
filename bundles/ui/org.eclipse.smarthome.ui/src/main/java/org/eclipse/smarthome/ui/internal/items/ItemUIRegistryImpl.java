@@ -932,31 +932,7 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
      * {@inheritDoc}
      */
     @Override
-    public boolean getVisiblity(Widget w, Authentication auth) {
-        Item item;
-
-        try {
-            item = itemRegistry.getItem(w.getItem());
-
-            // check if current user is allowed to see the item.
-            ArrayList<String> allowedItems = new ArrayList<String>();
-            for (String role : auth.getRoles()) {
-                allowedItems.add(role);
-            }
-
-            if (!isItemAllowed(item, allowedItems)) {
-                logger.debug("### Item {} was not displayed", item.getName());
-                return false;
-            }
-
-        } catch (ItemNotFoundException e) {
-            logger.error("Cannot retrieve visibility item {} for widget {}", w.getItem(),
-                    w.eClass().getInstanceTypeName());
-
-            // Default to visible!
-            return true;
-        }
-
+    public boolean getVisiblity(Widget w) {
         // Default to visible if parameters not set
         List<VisibilityRule> ruleList = w.getVisibility();
         if (ruleList == null) {
@@ -976,7 +952,7 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
                 continue;
             }
 
-            // Item item;
+            Item item;
             try {
                 item = itemRegistry.getItem(rule.getItem());
             } catch (ItemNotFoundException e) {
@@ -1008,6 +984,38 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
 
         // The state wasn't in the list, so we don't display it
         return false;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public boolean getVisiblity(Widget w, Authentication auth) {
+        Item item;
+
+        try {
+            item = itemRegistry.getItem(w.getItem());
+
+            // check if current user is allowed to see the item.
+            ArrayList<String> allowedItems = new ArrayList<String>();
+            for (String role : auth.getRoles()) {
+                allowedItems.add(role);
+            }
+
+            if (!isItemAllowed(item, allowedItems)) {
+                logger.debug("### Item {} was not displayed", item.getName());
+                return false;
+            }
+
+        } catch (ItemNotFoundException e) {
+            logger.error("Cannot retrieve visibility item {} for widget {}", w.getItem(),
+                    w.eClass().getInstanceTypeName());
+
+            // Default to visible!
+            return true;
+        }
+
+        return this.getVisiblity(w);
     }
 
     private boolean isItemAllowed(Item item, ArrayList<String> allowedItems) {

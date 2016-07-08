@@ -127,7 +127,17 @@ public interface ItemUIRegistry extends ItemRegistry, ItemUIProvider {
      *
      * @param w
      *            Widget
+     * @return true if the item is visible
+     */
+    public boolean getVisiblity(Widget w);
+
+    /**
+     * Gets the widget visibility based on the item state
+     *
+     * @param w
+     *            Widget
      * @param auth
+     *            Authentication
      * @return true if the item is visible
      */
     public boolean getVisiblity(Widget w, Authentication auth);
