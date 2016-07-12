@@ -1,13 +1,10 @@
 package org.eclipse.smarthome.ui.usermgmt.internal;
 
-import java.io.IOException;
-import java.net.URL;
 import java.util.Hashtable;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
 
-import org.apache.commons.io.IOUtils;
 import org.eclipse.smarthome.core.auth.AuthenticatedHttpContext;
 import org.osgi.framework.BundleContext;
 import org.osgi.service.component.ComponentContext;
@@ -62,26 +59,7 @@ public class UserMgmtService {
     }
 
     protected HttpServlet createServlet() {
-        return new UserMgmtServlet(getTemplateFile("layout.html"), getTemplateFile("users_list.html"),
-                getTemplateFile("users_edit.html"), getTemplateFile("users_add.html"),
-                getTemplateFile("roles_list.html"), getTemplateFile("roles_edit.html"),
-                getTemplateFile("roles_add.html"));
-    }
-
-    private String getTemplateFile(String name) {
-        String template;
-        URL url = bundleContext.getBundle().getEntry("templates/" + name);
-        if (url != null) {
-            try {
-                template = IOUtils.toString(url.openStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            throw new RuntimeException("Cannot find " + name + " - failed to initialize user management servlet");
-        }
-
-        return template;
+        return new UserMgmtServlet(bundleContext.getBundle());
     }
 
 }

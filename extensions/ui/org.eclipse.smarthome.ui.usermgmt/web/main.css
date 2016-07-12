@@ -80,19 +80,34 @@ footer a:focus {
 	color: #fff;
 }
 
+tr > td > .btn {
+	margin-right: 8px;
+}
+
+.form-add {
+    margin-top: 20px;	
+}
+.form-inline {
+	display: inline;
+}
+
+.nav-tabs>li>a {
+	border-radius: 0;
+}
+
 .btn-primary {
-    background-color: #ff6600;
-    border-color: #d95700;
+	background-color: #ff6600;
+	border-color: #d95700;
 }
 .btn-primary:hover,
 .btn-primary:focus {
-    background-color: #d95700;
-    border-color: #b84a00;
+	background-color: #d95700;
+	border-color: #b84a00;
 }
 
 a,
 a:link,
 a:focus,
 a:hover {
-    color: #ff6600;
+	color: #ff6600;
 }

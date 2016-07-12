@@ -5,7 +5,6 @@ import org.eclipse.smarthome.core.auth.Permission;
 public class PermissionImpl implements Permission {
 
     private String reqUrl;
-
     private String[] roles;
 
     @Override
@@ -26,6 +25,18 @@ public class PermissionImpl implements Permission {
     @Override
     public void setRoles(String[] roles) {
         this.roles = roles;
+    }
+
+    @Override
+    public String toString() {
+        StringBuilder sb = new StringBuilder();
+        sb.append(this.getReqUrl());
+        for (String role : this.getRoles()) {
+            sb.append(",");
+            sb.append(role);
+        }
+
+        return sb.toString();
     }
 
 }

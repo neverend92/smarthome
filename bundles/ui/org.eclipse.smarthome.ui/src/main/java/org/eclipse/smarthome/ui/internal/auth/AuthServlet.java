@@ -74,9 +74,6 @@ public class AuthServlet extends HttpServlet {
             innerContent = innerContent.replace("###roles###", roles);
         }
 
-        String sessionId = session.getId();
-        innerContent = innerContent.replace("###sessionId###", sessionId);
-
         res.setContentType("text/html;charset=UTF-8");
         res.getWriter().append(indexTemplate.replace("<!--INNERCONTENT-->", innerContent));
         res.getWriter().close();

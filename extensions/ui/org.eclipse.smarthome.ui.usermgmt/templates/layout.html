@@ -18,12 +18,31 @@
 		</div>
 	</header>
 	<section class="container">
-		<h1>Welcome to openHAB from University of Tuebingen</h1>
+		<h1>openHAB User Management</h1>
+		<a href="/" class="btn btn-info">Back to Dashboard</a>
 		<div class="line">
 			<div class="decorator"></div>
 			<hr />
 		</div>
-		<!--INNERCONTENT-->
+		<div>
+			<!-- Nav tabs -->
+			<ul class="nav nav-tabs" role="tablist">
+				<li role="presentation" class="###TAB_USERS###">
+					<a href="/usermgmt/app" aria-controls="users" role="tab" data-toggle="tab">Users</a>
+				</li>
+				<li role="presentation" class="###TAB_PERMISSIONS###">
+					<a href="/usermgmt/app?controller=permissions" aria-controls="permissions" role="tab" data-toggle="tab">Permissions</a>
+				</li>
+			</ul>
+			<div class="tab-content">
+				<div role="tabpanel" class="tab-pane ###TAB_CONTENT_USERS###" id="users">
+					<!--INNERCONTENT_USERS-->
+				</div>
+				<div role="tabpanel" class="tab-pane ###TAB_CONTENT_PERMISSIONS###" id="permissions">
+					<!--INNERCONTENT_PERMISSIONS-->
+				</div>
+			</div>
+		</div>
 		<div class="line">
 			<div class="decorator"></div>
 			<hr />
