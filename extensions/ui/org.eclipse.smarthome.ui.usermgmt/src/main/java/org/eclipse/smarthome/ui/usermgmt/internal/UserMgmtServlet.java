@@ -19,32 +19,32 @@ public class UserMgmtServlet extends HttpServlet {
 
     private static final long serialVersionUID = 2627006202641947948L;
 
-    // passed controller.
-    private String urlController;
-    // passed action.
-    private String urlAction;
-    // passed id.
-    private String urlId;
-
-    // bundle to access resources (template files).
-    private Bundle bundle;
-
     // default (fallback) controller.
     private static final String DEFAULT_CONTROLLER = "users";
     // default (fallback) action.
     private static final String DEFAULT_ACTION = "index";
-
     // array of valid controllers.
     private static final String[] VALID_CONTROLLERS = { "users", "permissions" };
+
     // array of valid get actions.
     private static final String[] VALID_ACTIONS_GET = { "index", "edit", "add" };
+
     // array of valid post actions.
     private static final String[] VALID_ACTIONS_POST = { "add", "edit", "delete", "addRole", "deleteRole" };
-
     // flag for get request.
     private static final int FLAG_GET = 1;
+
     // flag for post request.
     private static final int FLAG_POST = 2;
+    // passed controller.
+    private String urlController;
+    // passed action.
+    private String urlAction;
+
+    // passed id.
+    private String urlId;
+    // bundle to access resources (template files).
+    private Bundle bundle;
 
     public UserMgmtServlet(Bundle bundle) {
         this.bundle = bundle;
@@ -68,70 +68,28 @@ public class UserMgmtServlet extends HttpServlet {
         // get session.
         HttpSession session = req.getSession();
 
-        // get html layout for servlet.
-        String layoutTemplate = this.getTemplateFile("layout");
-
         // build content.
         String fullContent = "";
+
         // switch by controller.
         if (this.urlController.equals("users")) {
             // load user controller
             UserController controller = new UserController(this.urlAction, this.urlId, this);
 
-            // replace inner content for users.
-            fullContent = layoutTemplate.replace("<!--INNERCONTENT_USERS-->", controller.getContent());
-            fullContent = fullContent.replace("<!--INNERCONTENT_ROLES-->", "");
-            // set user tab pane active
-            fullContent = fullContent.replace("###TAB_CONTENT_USERS###", "active");
-            fullContent = fullContent.replace("###TAB_CONTENT_ROLES###", "");
-            // set user tab nav element active.
-            fullContent = fullContent.replace("###TAB_USERS###", "active");
-            fullContent = fullContent.replace("###TAB_ROLES###", "");
+            fullContent = this.getFullContent(controller.getContent(), session);
 
         } else if (this.urlController.equals("permissions")) {
             // load permission controller
             PermissionController controller = new PermissionController(this.urlAction, this.urlId, this);
 
-            // replace inner content for permissions.
-            fullContent = layoutTemplate.replace("<!--INNERCONTENT_USERS-->", "");
-            fullContent = fullContent.replace("<!--INNERCONTENT_PERMISSIONS-->", controller.getContent());
-            // set permission tab pane active.
-            fullContent = fullContent.replace("###TAB_CONTENT_USERS###", "");
-            fullContent = fullContent.replace("###TAB_CONTENT_PERMISSIONS###", "active");
-            // set permission tab nav element active.
-            fullContent = fullContent.replace("###TAB_USERS###", "");
-            fullContent = fullContent.replace("###TAB_PERMISSIONS###", "active");
+            fullContent = this.getFullContent(controller.getContent(), session);
 
         }
 
-        // build error string (empty if no error)
-        StringBuilder errors = new StringBuilder();
-        // get errors from session.
-        Object tmpError = session.getAttribute("errors");
-        if (tmpError != null) {
-            // surround with bootstrap alert.
-            errors.append("<div class=\"alert alert-danger\" role=\"alert\">");
-            errors.append(tmpError);
-            errors.append("</div>");
+        if (fullContent == null || fullContent.isEmpty()) {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
-        // replace error placeholder.
-        fullContent = fullContent.replace("<!--ERRORS-->", errors);
-
-        // build success string (empty if not successful)
-        StringBuilder success = new StringBuilder();
-        // get success msg from session.
-        Object tmpSuccess = session.getAttribute("success");
-        if (tmpSuccess != null) {
-            // surround with bootstrap alert.
-            success.append("<div class=\"alert alert-success\" role=\"alert\">");
-            success.append(tmpSuccess);
-            success.append("</div>");
-        }
-        // replace success placeholder.
-        fullContent = fullContent.replace("<!--SUCCESS-->", success);
-
-        // set session id.
-        fullContent = fullContent.replaceAll("###sessionId###", session.getId());
 
         // set content type.
         res.setContentType("text/html;charset=UTF-8");
@@ -159,63 +117,131 @@ public class UserMgmtServlet extends HttpServlet {
             return;
         }
 
-        // build id for next redirect (perhaps emtpy)
-        String tmpId = (this.urlId != null && !this.urlAction.isEmpty()) ? "&id=" + this.urlId : "";
-
         // switch by controller.
         if (this.urlController.equals("users")) {
             // load user controller
             UserController controller = new UserController(this.urlAction, this.urlId, this);
             // handle post request.
             if (controller.postContent(req)) {
-                if (this.urlAction.equals("add")) {
-                    // success redirect to edit page.
-                    res.sendRedirect("/usermgmt/app?controller=users&action=edit&id=" + req.getParameter("username"));
-                } else if (this.urlAction.equals("addRole") || this.urlAction.equals("deleteRole")) {
-                    // success redirect to edit page.
-                    res.sendRedirect("/usermgmt/app?controller=users&action=edit&id=" + req.getParameter("user"));
-                } else {
-                    // successful redirect to overview.
-                    res.sendRedirect("/usermgmt/app");
-                }
+                this.handleSuccess(req, res);
             } else {
-                if (this.urlAction.equals("addRole") || this.urlAction.equals("deleteRole")) {
-                    // error redirect to edit page
-                    res.sendRedirect("/usermgmt/app?controller=users&action=edit&id=" + req.getParameter("user"));
-                } else {
-                    // error redirect to same page.
-                    res.sendRedirect("/usermgmt/app?controller=users&action=" + this.urlAction + tmpId);
-                }
+                this.handleError(req, res);
             }
         } else if (this.urlController.equals("permissions")) {
             // load permission controller
             PermissionController controller = new PermissionController(this.urlAction, this.urlId, this);
             // handle post request.
             if (controller.postContent(req)) {
-
-                if (this.urlAction.equals("add")) {
-                    // success redirect to edit page.
-                    res.sendRedirect(
-                            "/usermgmt/app?controller=permissions&action=edit&id=" + req.getParameter("username"));
-                } else if (this.urlAction.equals("addRole") || this.urlAction.equals("deleteRole")) {
-                    // success redirect to edit page.
-                    res.sendRedirect("/usermgmt/app?controller=permissions&action=edit&id=" + req.getParameter("user"));
-                } else {
-                    // successful redirect to overview
-                    res.sendRedirect("/usermgmt/app?controller=permissions");
-                }
-
+                this.handleSuccess(req, res);
             } else {
-                if (this.urlAction.equals("addRole") || this.urlAction.equals("deleteRole")) {
-                    // error redirect to edit page
-                    res.sendRedirect("/usermgmt/app?controller=permissions&action=edit&id=" + req.getParameter("user"));
-                } else {
-                    // error redirect to same page.
-                    res.sendRedirect("/usermgmt/app?controller=permissions&action=" + this.urlAction + tmpId);
-                }
-
+                this.handleError(req, res);
             }
         }
+    }
+
+    private String getFullContent(String innerContent, HttpSession session) {
+
+        if (innerContent == null || innerContent.isEmpty()) {
+            return null;
+        }
+
+        // get html layout for servlet.
+        String fullContent = this.getTemplateFile("layout");
+
+        String innerContentUser = "";
+        String innerContentPermission = "";
+        String tabClassUser = "";
+        String tabClassPermission = "";
+
+        if (this.urlController.equals("users")) {
+            innerContentUser = innerContent;
+            tabClassUser = "active";
+        } else if (this.urlController.equals("permissions")) {
+            innerContentPermission = innerContent;
+            tabClassPermission = "active";
+        }
+
+        // replace inner content for users.
+        fullContent = fullContent.replace("<!--INNERCONTENT_USERS-->", innerContentUser);
+        fullContent = fullContent.replace("<!--INNERCONTENT_PERMISSIONS-->", innerContentPermission);
+        // set user tab pane active
+        fullContent = fullContent.replace("###TAB_CONTENT_USERS###", tabClassUser);
+        fullContent = fullContent.replace("###TAB_CONTENT_PERMISSIONS###", tabClassPermission);
+        // set user tab nav element active.
+        fullContent = fullContent.replace("###TAB_USERS###", tabClassUser);
+        fullContent = fullContent.replace("###TAB_PERMISSIONS###", tabClassPermission);
+
+        // replace error placeholder.
+        fullContent = fullContent.replace("<!--ERRORS-->", this.getSessionMessages(session, "errors"));
+
+        // replace success placeholder.
+        fullContent = fullContent.replace("<!--SUCCESS-->", this.getSessionMessages(session, "success"));
+
+        return fullContent;
+    }
+
+    /**
+     * get id parameter for current controller.
+     *
+     * @return
+     */
+    private String getParamByController() {
+        if (this.urlController.equals("users")) {
+            return "username";
+        }
+        if (this.urlController.equals("permissions")) {
+            return "reqUrl";
+        }
+
+        return null;
+    }
+
+    /**
+     * returns error/success messages
+     *
+     * @param session
+     * @param type
+     * @return
+     */
+    private String getSessionMessages(HttpSession session, String type) {
+        // build success string (empty if not successful)
+        StringBuilder sb = new StringBuilder();
+        // get success msg from session.
+        Object tmp = session.getAttribute(type);
+        if (tmp != null) {
+            // surround with bootstrap alert.
+            String bootstrapClass = "danger";
+            if (type == "success") {
+                bootstrapClass = "success";
+            }
+            sb.append("<div class=\"alert alert-" + bootstrapClass + "\" role=\"alert\">");
+            sb.append(tmp);
+            sb.append("</div>");
+        }
+
+        return sb.toString();
+    }
+
+    /**
+     * get template file from filename
+     *
+     * @param name
+     * @return String
+     */
+    protected String getTemplateFile(String name) {
+        String template;
+        URL url = this.bundle.getEntry("templates/" + name + ".html");
+        if (url != null) {
+            try {
+                template = IOUtils.toString(url.openStream());
+            } catch (IOException e) {
+                throw new RuntimeException(e);
+            }
+        } else {
+            throw new RuntimeException("Cannot find " + name + " - failed to initialize user management servlet");
+        }
+
+        return template;
     }
 
     /**
@@ -272,25 +298,58 @@ public class UserMgmtServlet extends HttpServlet {
     }
 
     /**
-     * get template file from filename
+     * handle failed request, redirect to corresponding url.
      *
-     * @param name
-     * @return String
+     * @param req
+     * @param res
+     * @throws IOException
      */
-    protected String getTemplateFile(String name) {
-        String template;
-        URL url = this.bundle.getEntry("templates/" + name + ".html");
-        if (url != null) {
-            try {
-                template = IOUtils.toString(url.openStream());
-            } catch (IOException e) {
-                throw new RuntimeException(e);
-            }
-        } else {
-            throw new RuntimeException("Cannot find " + name + " - failed to initialize user management servlet");
+    private void handleError(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String param = this.getParamByController();
+        if (param == null) {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
         }
 
-        return template;
+        if (this.urlAction.equals("addRole") || this.urlAction.equals("deleteRole")) {
+            // error redirect to edit page
+            res.sendRedirect(
+                    "/usermgmt/app?controller=" + this.urlController + "&action=edit&id=" + req.getParameter(param));
+        } else {
+            // build id for next redirect (perhaps emtpy)
+            String tmpId = (this.urlId != null && !this.urlAction.isEmpty()) ? "&id=" + this.urlId : "";
+
+            // error redirect to same page.
+            res.sendRedirect("/usermgmt/app?controller=" + this.urlController + "&action=" + this.urlAction + tmpId);
+        }
+    }
+
+    /**
+     * handle successful request, redirect to corresponding url.
+     *
+     * @param req
+     * @param res
+     * @throws IOException
+     */
+    private void handleSuccess(HttpServletRequest req, HttpServletResponse res) throws IOException {
+        String param = this.getParamByController();
+        if (param == null) {
+            res.sendError(HttpServletResponse.SC_NOT_FOUND);
+            return;
+        }
+
+        if (this.urlAction.equals("add")) {
+            // success redirect to edit page.
+            res.sendRedirect(
+                    "/usermgmt/app?controller=" + this.urlController + "&action=edit&id=" + req.getParameter(param));
+        } else if (this.urlAction.equals("addRole") || this.urlAction.equals("deleteRole")) {
+            // success redirect to edit page.
+            res.sendRedirect(
+                    "/usermgmt/app?controller=" + this.urlController + "&action=edit&id=" + req.getParameter(param));
+        } else {
+            // successful redirect to overview
+            res.sendRedirect("/usermgmt/app?controller=" + this.urlController);
+        }
     }
 
 }

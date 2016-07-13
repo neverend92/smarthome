@@ -8,18 +8,47 @@ public class PermissionImpl implements Permission {
     private String[] roles;
 
     @Override
+    public String get(String attribute) {
+        if (attribute.equals("reqUrl")) {
+            return this.getReqUrl();
+        }
+        return null;
+    }
+
+    @Override
+    public String getAttributeName(String attribute) {
+        if (attribute.equals("reqUrl")) {
+            return "Requested URL";
+        }
+        return null;
+    }
+
+    @Override
+    public String getId() {
+        return this.reqUrl;
+    }
+
+    @Override
     public String getReqUrl() {
         return this.reqUrl;
     }
 
     @Override
-    public void setReqUrl(String reqUrl) {
-        this.reqUrl = reqUrl;
+    public String[] getRoles() {
+        return this.roles;
     }
 
     @Override
-    public String[] getRoles() {
-        return this.roles;
+    public void set(String attribute, String value) {
+        if (attribute.equals("reqUrl")) {
+            this.setReqUrl(value);
+        }
+        return;
+    }
+
+    @Override
+    public void setReqUrl(String reqUrl) {
+        this.reqUrl = reqUrl;
     }
 
     @Override

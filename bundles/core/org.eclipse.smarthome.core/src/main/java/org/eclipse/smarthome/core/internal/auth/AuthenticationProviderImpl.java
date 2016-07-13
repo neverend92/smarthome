@@ -6,12 +6,12 @@ import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.auth.AuthenticationProvider;
-import org.eclipse.smarthome.core.auth.UserRepository;
+import org.eclipse.smarthome.core.auth.Repository;
 import org.eclipse.smarthome.core.auth.User;
 
 public class AuthenticationProviderImpl implements AuthenticationProvider {
 
-    private UserRepository userRepository;
+    private Repository<User> userRepository;
 
     public AuthenticationProviderImpl() {
         // init provider.

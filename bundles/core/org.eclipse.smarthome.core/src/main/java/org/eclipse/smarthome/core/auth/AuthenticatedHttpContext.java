@@ -48,7 +48,7 @@ public class AuthenticatedHttpContext implements HttpContext {
 
         // there is a valid authentication
         // but check if user is allowed to see specific content.
-        PermissionRepository repo = new PermissionRepositoryImpl();
+        Repository<Permission> repo = new PermissionRepositoryImpl();
         Permission permission = repo.get(reqUrl);
 
         if (permission == null) {

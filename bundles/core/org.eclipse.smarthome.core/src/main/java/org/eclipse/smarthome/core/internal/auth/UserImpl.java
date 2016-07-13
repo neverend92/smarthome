@@ -9,13 +9,30 @@ public class UserImpl implements User {
     private String[] roles;
 
     @Override
-    public String getUsername() {
-        return this.username;
+    public String get(String attribute) {
+        if (attribute.equals("username")) {
+            return this.getUsername();
+        }
+        if (attribute.equals("password")) {
+            return this.getPassword();
+        }
+        return null;
     }
 
     @Override
-    public void setUsername(String username) {
-        this.username = username;
+    public String getAttributeName(String attribute) {
+        if (attribute.equals("username")) {
+            return "Username";
+        }
+        if (attribute.equals("password")) {
+            return "Password";
+        }
+        return null;
+    }
+
+    @Override
+    public String getId() {
+        return this.username;
     }
 
     @Override
@@ -24,18 +41,38 @@ public class UserImpl implements User {
     }
 
     @Override
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
-    @Override
     public String[] getRoles() {
         return this.roles;
     }
 
     @Override
+    public String getUsername() {
+        return this.username;
+    }
+
+    @Override
+    public void set(String attribute, String value) {
+        if (attribute.equals("username")) {
+            this.setUsername(value);
+        }
+        if (attribute.equals("password")) {
+            this.setPassword(value);
+        }
+    }
+
+    @Override
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Override
     public void setRoles(String[] roles) {
         this.roles = roles;
+    }
+
+    @Override
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     @Override

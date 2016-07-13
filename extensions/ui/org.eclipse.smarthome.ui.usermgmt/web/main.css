@@ -106,8 +106,11 @@ tr > td > .btn {
 }
 
 a,
-a:link,
 a:focus,
 a:hover {
 	color: #ff6600;
+}
+
+.table > tbody > tr > td {
+	vertical-align: middle;
 }

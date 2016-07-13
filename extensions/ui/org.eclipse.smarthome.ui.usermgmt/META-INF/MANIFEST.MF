@@ -13,7 +13,7 @@ Import-Package: javax.servlet,
  org.osgi.service.component,
  org.osgi.service.http,
  org.slf4j
-Export-Package: org.eclipse.smarthome.ui.usermgmt
+Export-Package: org.eclipse.smarthome.ui.usermgmt.internal
 Bundle-SymbolicName: org.eclipse.smarthome.ui.usermgmt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Service-Component: OSGI-INF/*.xml

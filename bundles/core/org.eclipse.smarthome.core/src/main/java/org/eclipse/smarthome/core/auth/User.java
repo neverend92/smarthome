@@ -1,6 +1,6 @@
 package org.eclipse.smarthome.core.auth;
 
-public interface User {
+public interface User extends DTO {
 
     public String getUsername();
 
@@ -9,9 +9,5 @@ public interface User {
     public String getPassword();
 
     public void setPassword(String password);
-
-    public String[] getRoles();
-
-    public void setRoles(String[] roles);
 
 }
