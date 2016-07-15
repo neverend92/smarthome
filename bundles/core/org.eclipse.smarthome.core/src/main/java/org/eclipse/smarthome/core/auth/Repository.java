@@ -8,9 +8,9 @@ public interface Repository<E extends DTO> {
 
     public boolean delete(String name);
 
-    public E get(String name);
-
     public E get(E object);
+
+    public E get(String name);
 
     public ArrayList<E> getAll();
 

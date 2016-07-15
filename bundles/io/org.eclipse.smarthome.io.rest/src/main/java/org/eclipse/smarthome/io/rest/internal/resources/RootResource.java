@@ -59,6 +59,8 @@ public class RootResource {
     @GET
     @Produces(MediaType.APPLICATION_JSON)
     public Response getRoot(@Context HttpHeaders headers) {
+        logger.debug("### Initial method REST at '{}'", uriInfo.getPath());
+
         return Response.ok(getRootBean()).build();
     }
 

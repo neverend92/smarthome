@@ -3,8 +3,19 @@ package org.eclipse.smarthome.core.internal.auth;
 import java.util.ArrayList;
 
 import org.eclipse.smarthome.core.auth.Permission;
+import org.eclipse.smarthome.core.auth.Repository;
 
 public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
+
+    private static Repository<Permission> repository = null;
+
+    public static Repository<Permission> getInstance() {
+        if (repository == null) {
+            repository = new PermissionRepositoryImpl();
+        }
+
+        return repository;
+    }
 
     public PermissionRepositoryImpl() {
         this.objects = new ArrayList<Permission>();

@@ -99,7 +99,7 @@ public class AuthServlet extends HttpServlet {
 
         // do auth check...
         UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username, password);
-        Authentication auth = new AuthenticationProviderImpl().authenticate(creds);
+        Authentication auth = AuthenticationProviderImpl.getInstace().authenticate(creds);
 
         if (auth == null) {
             session.setAttribute("errors", "Wrong credentials passed. Try again.");

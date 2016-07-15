@@ -9,7 +9,7 @@ public class UserController extends Controller<User> {
     public UserController(String urlAction, String urlId, UserMgmtServlet servlet) {
         super(urlAction, urlId, servlet);
 
-        this.repository = new UserRepositoryImpl();
+        this.repository = UserRepositoryImpl.getInstance();
         this.entityName = "user";
         this.fieldName = "username";
 

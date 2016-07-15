@@ -7,15 +7,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
-import org.eclipse.smarthome.core.internal.auth.PermissionRepositoryImpl;
+import org.eclipse.smarthome.core.internal.auth.AuthenticationProviderImpl;
 import org.osgi.framework.Bundle;
 import org.osgi.service.http.HttpContext;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AuthenticatedHttpContext implements HttpContext {
-
-    private final Logger logger = LoggerFactory.getLogger(AuthenticatedHttpContext.class);
 
     private Bundle bundle;
 
@@ -23,6 +19,12 @@ public class AuthenticatedHttpContext implements HttpContext {
         this.bundle = bundle;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.osgi.service.http.HttpContext#handleSecurity(javax.servlet.http.HttpServletRequest,
+     * javax.servlet.http.HttpServletResponse)
+     */
     @Override
     public boolean handleSecurity(HttpServletRequest req, HttpServletResponse res) throws IOException {
         HttpSession session = req.getSession();
@@ -32,8 +34,6 @@ public class AuthenticatedHttpContext implements HttpContext {
         }
 
         String reqUrl = req.getRequestURI();
-
-        logger.debug("### requested uri: {}", reqUrl);
 
         Authentication auth = (Authentication) session.getAttribute("auth");
 
@@ -48,34 +48,30 @@ public class AuthenticatedHttpContext implements HttpContext {
 
         // there is a valid authentication
         // but check if user is allowed to see specific content.
-        Repository<Permission> repo = new PermissionRepositoryImpl();
-        Permission permission = repo.get(reqUrl);
-
-        if (permission == null) {
+        if (!AuthenticationProviderImpl.getInstace().isAllowed(auth, reqUrl)) {
             res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-            return false;
-        }
-
-        if (permission.getRoles().length > 0) {
-            if (!AuthUtils.hasRoleMatch(permission.getRoles(), auth.getRoles())) {
-                res.sendError(HttpServletResponse.SC_UNAUTHORIZED);
-                return false;
-            }
         }
 
         return true;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.osgi.service.http.HttpContext#getResource(java.lang.String)
+     */
     @Override
     public URL getResource(String name) {
-        URL url = this.bundle.getResource(name);
-        logger.debug("### Requested Resource: {}, Resource URL: {}", name, url);
-        return url;
+        return this.bundle.getResource(name);
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.osgi.service.http.HttpContext#getMimeType(java.lang.String)
+     */
     @Override
     public String getMimeType(String name) {
-        logger.debug("### Requested Resource: {}, Mimetype: {}", name, null);
         return null;
     }
 

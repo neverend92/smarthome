@@ -17,6 +17,15 @@ import org.slf4j.LoggerFactory;
 
 public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
+    /** The default users configuration directory name */
+    final static protected String USERS_FOLDER = "users";
+
+    /** The program argument name for setting the main config directory path */
+    final static protected String CONFIG_DIR_PROG_ARGUMENT = "smarthome.configdir";
+
+    /** The default main configuration directory name */
+    final static protected String DEFAULT_CONFIG_FOLDER = "conf";
+
     protected ArrayList<E> objects;
 
     protected String configFile;
@@ -61,8 +70,20 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         return this.objects;
     }
 
+    protected String getSourcePath() {
+        String progArg = System.getProperty(CONFIG_DIR_PROG_ARGUMENT);
+        String path;
+        if (progArg != null) {
+            path = progArg;
+        } else {
+            path = DEFAULT_CONFIG_FOLDER;
+        }
+
+        return path + File.separator + USERS_FOLDER;
+    }
+
     protected void handleConfigs(boolean saveFile) {
-        File dir = new File(RepositoryProvider.getSourcePath());
+        File dir = new File(this.getSourcePath());
         if (dir.exists()) {
             File[] files = dir.listFiles();
             for (File file : files) {

@@ -9,7 +9,7 @@ public class PermissionController extends Controller<Permission> {
     public PermissionController(String urlAction, String urlId, UserMgmtServlet servlet) {
         super(urlAction, urlId, servlet);
 
-        this.repository = new PermissionRepositoryImpl();
+        this.repository = PermissionRepositoryImpl.getInstance();
         this.entityName = "permission";
         this.fieldName = "reqUrl";
 
