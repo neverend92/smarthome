@@ -13,14 +13,6 @@ public interface AuthenticationProvider {
     public Authentication authenticate(Credentials credentials);
 
     /**
-     * generates a strong pseudo random token for api access.
-     *
-     * @param auth
-     * @return
-     */
-    public String generateToken(Authentication auth);
-
-    /**
      * Checks if the requested URL is allowed for the passed authentication
      *
      * @param auth
@@ -28,5 +20,19 @@ public interface AuthenticationProvider {
      * @return
      */
     public boolean isAllowed(Authentication auth, String reqUrl);
+
+    /**
+     * Generates an API token.
+     *
+     * @return
+     */
+    public String generateToken();
+
+    /**
+     * calculates the timestamp when token expires.
+     * 
+     * @return
+     */
+    public int calcExpiresTimestamp();
 
 }

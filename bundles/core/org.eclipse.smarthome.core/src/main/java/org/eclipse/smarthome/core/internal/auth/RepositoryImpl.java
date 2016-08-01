@@ -34,6 +34,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     @Override
     public boolean create(E object) {
+        this.handleConfigs(false);
         this.objects.add(object);
         this.handleConfigs(true);
         return true;
@@ -41,6 +42,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     @Override
     public boolean delete(String name) {
+        this.handleConfigs(false);
         E object = this.get(name);
         if (object == null) {
             return false;
@@ -52,11 +54,13 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     @Override
     public E get(E object) {
+        this.handleConfigs(false);
         return this.get(object.getId());
     }
 
     @Override
     public E get(String name) {
+        this.handleConfigs(false);
         for (E object : this.objects) {
             if (object.getId().equals(name)) {
                 return object;
@@ -67,7 +71,19 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     @Override
     public ArrayList<E> getAll() {
+        this.handleConfigs(false);
         return this.objects;
+    }
+
+    @Override
+    public E getBy(String attribute, String name) {
+        this.handleConfigs(false);
+        for (E object : this.objects) {
+            if (object.get(attribute).equals(name)) {
+                return object;
+            }
+        }
+        return null;
     }
 
     protected String getSourcePath() {
@@ -140,6 +156,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
         List<String> lines = IOUtils.readLines(new FileInputStream(configFile));
 
+        this.objects = new ArrayList<E>();
         for (String line : lines) {
             E object = parseLine(line);
             if (object != null) {
@@ -155,6 +172,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     @Override
     public boolean update(String name, E object) {
+        this.handleConfigs(false);
         E tmp = this.get(name);
         if (tmp == null) {
             return false;

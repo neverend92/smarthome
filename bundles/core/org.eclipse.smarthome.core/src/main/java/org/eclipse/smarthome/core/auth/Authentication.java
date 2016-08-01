@@ -11,4 +11,12 @@ public interface Authentication {
     public void setRoles(String[] roles);
 
     public boolean hasRole(String role);
+
+    public String getToken();
+
+    public void setToken(String token);
+
+    public int getExpiresTimestamp();
+
+    public void setExpiresTimestamp(int expiresTimestamp);
 }

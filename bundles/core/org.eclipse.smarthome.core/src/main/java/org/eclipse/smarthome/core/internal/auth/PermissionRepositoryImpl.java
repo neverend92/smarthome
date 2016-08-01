@@ -25,6 +25,7 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
 
     @Override
     public Permission get(String name) {
+        this.handleConfigs(false);
         // cut of parameter.
         int idx = name.indexOf('?');
         if (idx != -1) {

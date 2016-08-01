@@ -8,15 +8,21 @@ import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.auth.AuthenticationProvider;
 import org.eclipse.smarthome.core.auth.Permission;
 import org.eclipse.smarthome.core.auth.Repository;
+import org.eclipse.smarthome.core.auth.Token;
 import org.eclipse.smarthome.core.auth.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class AuthenticationProviderImpl implements AuthenticationProvider {
+
+    /** lifetime of token in seconds (current value: 1h) */
+    public static final int TOKEN_LIFETIME = 60 * 60;
 
     private static AuthenticationProvider authProvider = null;
 
     public static AuthenticationProvider getInstace() {
         if (authProvider == null) {
-            authProvider = new AuthenticationProviderImpl("t");
+            authProvider = new AuthenticationProviderImpl();
         }
 
         return authProvider;
@@ -24,9 +30,14 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
 
     private Repository<User> userRepository;
 
-    public AuthenticationProviderImpl(String t) {
+    private Repository<Token> tokenRepository;
+
+    private final Logger logger = LoggerFactory.getLogger(AuthenticationProviderImpl.class);
+
+    public AuthenticationProviderImpl() {
         // init provider.
         this.userRepository = UserRepositoryImpl.getInstance();
+        this.tokenRepository = TokenRepositoryImpl.getInstance();
     }
 
     /*
@@ -48,23 +59,32 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
         UsernamePasswordCredentials testCreds = new UsernamePasswordCredentials(user.getUsername(), user.getPassword());
 
         if (testCreds.equals(credentials)) {
-            return new AuthenticationImpl(user.getUsername(), user.getRoles());
+            Authentication auth = new AuthenticationImpl(user.getUsername(), user.getRoles(), this.generateToken(),
+                    this.calcExpiresTimestamp());
+
+            // save token to file.
+            Token token = new TokenImpl();
+            token.setToken(auth.getToken());
+            token.setUsername(auth.getUsername());
+            token.setExpiresTimestamp(auth.getExpiresTimestamp());
+
+            Token tmpToken = this.tokenRepository.getBy("username", token.getUsername());
+            if (tmpToken != null) {
+                token.setToken(tmpToken.getToken());
+                if (!this.tokenRepository.update(token.getToken(), token)) {
+                    return null;
+                }
+                auth.setToken(token.getToken());
+            } else {
+                if (!this.tokenRepository.create(token)) {
+                    return null;
+                }
+            }
+
+            return auth;
         }
 
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#generateToken()
-     */
-    @Override
-    public String generateToken(Authentication auth) {
-        if (auth == null) {
-            return null;
-        }
-        return UUID.randomUUID().toString();
     }
 
     /**
@@ -108,5 +128,34 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
         }
 
         return true;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#generateToken()
+     */
+    @Override
+    public String generateToken() {
+        return UUID.randomUUID().toString();
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#calcExpiresTimestamp()
+     */
+    @Override
+    public int calcExpiresTimestamp() {
+        return (this.getCurrentTimestamp() + AuthenticationProviderImpl.TOKEN_LIFETIME);
+    }
+
+    /**
+     * Gets the current UNIX timestamp.
+     *
+     * @return
+     */
+    private int getCurrentTimestamp() {
+        return (int) (System.currentTimeMillis() / 1000L);
     }
 }

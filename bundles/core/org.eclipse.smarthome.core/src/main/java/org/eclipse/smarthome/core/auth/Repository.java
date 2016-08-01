@@ -12,6 +12,8 @@ public interface Repository<E extends DTO> {
 
     public E get(String name);
 
+    public E getBy(String attribute, String name);
+
     public ArrayList<E> getAll();
 
     public boolean update(String name, E object);

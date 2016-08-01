@@ -14,6 +14,6 @@ package org.eclipse.smarthome.io.rest;
  */
 public interface RESTResource {
 
-    // public boolean handleApiKey();
+    // public boolean handleApiToken();
 
 }
