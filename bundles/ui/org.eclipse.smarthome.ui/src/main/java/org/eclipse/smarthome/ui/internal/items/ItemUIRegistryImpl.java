@@ -7,7 +7,6 @@
  */
 package org.eclipse.smarthome.ui.internal.items;
 
-import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.Collection;
 import java.util.Collections;
@@ -996,13 +995,7 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         try {
             item = itemRegistry.getItem(w.getItem());
 
-            // check if current user is allowed to see the item.
-            ArrayList<String> allowedItems = new ArrayList<String>();
-            for (String role : auth.getRoles()) {
-                allowedItems.add(role);
-            }
-
-            if (!isItemAllowed(item, allowedItems)) {
+            if (!itemRegistry.isItemAllowed(item, auth)) {
                 logger.debug("### Item {} was not displayed", item.getName());
                 return false;
             }
@@ -1016,33 +1009,6 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
         }
 
         return this.getVisiblity(w);
-    }
-
-    private boolean isItemAllowed(Item item, ArrayList<String> allowedItems) {
-        // admin is of course allowed.
-        if (allowedItems.contains("admin")) {
-            return true;
-        }
-
-        if (allowedItems.contains(item.getName())) {
-            return true;
-        }
-
-        if (item.getGroupNames().size() > 0) {
-            for (String groupName : item.getGroupNames()) {
-                if (allowedItems.contains(groupName)) {
-                    return true;
-                }
-
-                try {
-                    return isItemAllowed(itemRegistry.getItem(groupName), allowedItems);
-                } catch (ItemNotFoundException e) {
-                    logger.debug("#### Item {} not found.", groupName);
-                }
-            }
-        }
-
-        return false;
     }
 
     enum Condition {
@@ -1148,6 +1114,11 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
             return null;
         }
 
+    }
+
+    @Override
+    public boolean isItemAllowed(Item item, Authentication auth) {
+        return false;
     }
 
 }

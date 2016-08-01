@@ -590,6 +590,7 @@ public class ItemResource implements RESTResource {
         }
         if (items != null) {
             for (Item item : items) {
+                /** TODO filter items depending on api token. */
                 beans.add(EnrichedItemDTOMapper.map(item, recursive, uriInfo.getBaseUri(), locale));
             }
         }

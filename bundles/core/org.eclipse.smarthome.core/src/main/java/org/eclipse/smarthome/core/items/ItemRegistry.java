@@ -9,6 +9,7 @@ package org.eclipse.smarthome.core.items;
 
 import java.util.Collection;
 
+import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.common.registry.Registry;
 
 /**
@@ -52,20 +53,24 @@ public interface ItemRegistry extends Registry<Item, String> {
     public Collection<Item> getItems();
 
     /**
-     * This method retrieves all items with the given type
-     *
-     * @param type
-     *            - item type as defined by {@link ItemFactory}s
-     * @return a collection of all items of the given type
-     */
-    public Collection<Item> getItemsOfType(String type);
-
-    /**
      * This method retrieves all items that match a given search pattern
      *
      * @return a collection of all items matching the search pattern
      */
     public Collection<Item> getItems(String pattern);
+
+    /**
+     * Returns list of items which contains all of the given tags.
+     *
+     * @param typeFilter
+     *            - subclass of {@link GenericItem} to filter the resulting list
+     *            for.
+     * @param tags
+     *            - array of tags to be present on the returned items.
+     * @return list of items which contains all of the given tags, which is
+     *         filtered by the given type filter.
+     */
+    public <T extends GenericItem> Collection<T> getItemsByTag(Class<T> typeFilter, String... tags);
 
     /**
      * Returns list of items which contains all of the given tags.
@@ -88,21 +93,25 @@ public interface ItemRegistry extends Registry<Item, String> {
     public Collection<Item> getItemsByTagAndType(String type, String... tags);
 
     /**
-     * Returns list of items which contains all of the given tags.
+     * This method retrieves all items with the given type
      *
-     * @param typeFilter
-     *            - subclass of {@link GenericItem} to filter the resulting list
-     *            for.
-     * @param tags
-     *            - array of tags to be present on the returned items.
-     * @return list of items which contains all of the given tags, which is
-     *         filtered by the given type filter.
+     * @param type
+     *            - item type as defined by {@link ItemFactory}s
+     * @return a collection of all items of the given type
      */
-    public <T extends GenericItem> Collection<T> getItemsByTag(Class<T> typeFilter, String... tags);
+    public Collection<Item> getItemsOfType(String type);
 
     /**
      * @see ManagedItemProvider#remove(String, boolean)
      */
     public Item remove(String itemName, boolean recursive);
+
+    /**
+     *
+     * @param item
+     * @param auth
+     * @return
+     */
+    public boolean isItemAllowed(Item item, Authentication auth);
 
 }
