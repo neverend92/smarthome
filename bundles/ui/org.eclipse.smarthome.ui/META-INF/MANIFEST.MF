@@ -10,6 +10,7 @@ Bundle-License: http://www.eclipse.org/legal/epl-v10.html
 Import-Package: javax.imageio,
  javax.servlet,
  javax.servlet.http,
+ org.apache.commons.httpclient,
  org.apache.commons.io,
  org.apache.commons.lang,
  org.eclipse.emf.common.util,
