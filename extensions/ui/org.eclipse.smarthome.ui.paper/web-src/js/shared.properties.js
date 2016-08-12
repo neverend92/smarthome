@@ -137,35 +137,44 @@ angular.module('PaperUI.controllers').service('sharedProperties', function() {
     }
 });
 angular.module('PaperUI.constants').constant('itemConfig', {
-    'types' : [ {
-        name : "SwitchItem",
-        value : "Switch"
+    'types' : [ 'Switch', 'Contact', 'String', 'Number', 'Dimmer', 'DateTime', 'Color', 'Image', 'Player', 'Location', 'Group' ],
+    'groupTypes' : [ 'Switch', 'Contact', 'Number', 'Dimmer', 'None' ],
+    'arithmeticFunctions' : [ {
+        name : "AVG",
+        value : "AVG"
     }, {
-        name : "ContactItem",
-        value : "Contact"
+        name : "MAX",
+        value : "MAX"
     }, {
-        name : "StringItem",
-        value : "String"
+        name : "MIN",
+        value : "MIN"
     }, {
-        name : "NumberItem",
-        value : "Number"
+        name : "SUM",
+        value : "SUM"
+    } ],
+    'logicalFunctions' : [ {
+        name : "AND_ON_OFF",
+        value : "All ON → ON else OFF"
     }, {
-        name : "DimmerItem",
-        value : "Dimmer"
+        name : "NAND_ON_OFF",
+        value : "All ON → OFF else ON"
     }, {
-        name : "DateTimeItem",
-        value : "DateTime"
+        name : "OR_OFF_ON",
+        value : "All OFF → OFF else ON"
     }, {
-        name : "ColorItem",
-        value : "Color"
+        name : "NOR_ON_OFF",
+        value : "All OFF → ON else OFF"
     }, {
-        name : "ImageItem",
-        value : "Image"
+        name : "OR_ON_OFF",
+        value : "One ON → ON else OFF"
     }, {
-        name : "PlayerItem",
-        value : "Player"
+        name : "NOR_ON_OFF",
+        value : "One ON → OFF else ON"
     }, {
-        name : "LocationItem",
-        value : "Location"
+        name : "AND_OFF_ON",
+        value : "One OFF → OFF else ON"
+    }, {
+        name : "NAND_OFF_ON",
+        value : "One OFF → ON else OFF"
     } ]
 });
