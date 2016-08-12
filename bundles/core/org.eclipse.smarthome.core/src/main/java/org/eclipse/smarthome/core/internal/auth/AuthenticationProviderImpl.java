@@ -10,16 +10,24 @@ import org.eclipse.smarthome.core.auth.Permission;
 import org.eclipse.smarthome.core.auth.Repository;
 import org.eclipse.smarthome.core.auth.Token;
 import org.eclipse.smarthome.core.auth.User;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 public class AuthenticationProviderImpl implements AuthenticationProvider {
 
-    /** lifetime of token in seconds (current value: 1h) */
+    /**
+     * lifetime of token in seconds (current value: 1h)
+     */
     public static final int TOKEN_LIFETIME = 60 * 60;
 
+    /**
+     * {@code AuthenticationProvider} instance
+     */
     private static AuthenticationProvider authProvider = null;
 
+    /**
+     * Gets an instance of the class, if already available, otherwise creates new object.
+     *
+     * @return
+     */
     public static AuthenticationProvider getInstace() {
         if (authProvider == null) {
             authProvider = new AuthenticationProviderImpl();
@@ -28,14 +36,21 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
         return authProvider;
     }
 
+    /**
+     * user repository.
+     */
     private Repository<User> userRepository;
 
+    /**
+     * token repository.
+     */
     private Repository<Token> tokenRepository;
 
-    private final Logger logger = LoggerFactory.getLogger(AuthenticationProviderImpl.class);
-
+    /**
+     * Creates new {@code AuthenticationProvider} object
+     */
     public AuthenticationProviderImpl() {
-        // init provider.
+        // init repositories.
         this.userRepository = UserRepositoryImpl.getInstance();
         this.tokenRepository = TokenRepositoryImpl.getInstance();
     }
@@ -87,6 +102,35 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#calcExpiresTimestamp()
+     */
+    @Override
+    public int calcExpiresTimestamp() {
+        return (this.getCurrentTimestamp() + AuthenticationProviderImpl.TOKEN_LIFETIME);
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#generateToken()
+     */
+    @Override
+    public String generateToken() {
+        return UUID.randomUUID().toString();
+    }
+
+    /**
+     * Gets the current UNIX timestamp.
+     *
+     * @return
+     */
+    private int getCurrentTimestamp() {
+        return (int) (System.currentTimeMillis() / 1000L);
+    }
+
     /**
      * checks if there is a match in the two string arrays.
      *
@@ -128,34 +172,5 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
         }
 
         return true;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#generateToken()
-     */
-    @Override
-    public String generateToken() {
-        return UUID.randomUUID().toString();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.eclipse.smarthome.core.auth.AuthenticationProvider#calcExpiresTimestamp()
-     */
-    @Override
-    public int calcExpiresTimestamp() {
-        return (this.getCurrentTimestamp() + AuthenticationProviderImpl.TOKEN_LIFETIME);
-    }
-
-    /**
-     * Gets the current UNIX timestamp.
-     *
-     * @return
-     */
-    private int getCurrentTimestamp() {
-        return (int) (System.currentTimeMillis() / 1000L);
     }
 }

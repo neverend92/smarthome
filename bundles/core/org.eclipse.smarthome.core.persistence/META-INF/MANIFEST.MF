@@ -16,4 +16,3 @@ Export-Package: org.eclipse.smarthome.core.persistence,
  org.eclipse.smarthome.core.persistence.dto
 Bundle-ClassPath: .
 Service-Component: OSGI-INF/*.xml
-Bundle-ActivationPolicy: lazy

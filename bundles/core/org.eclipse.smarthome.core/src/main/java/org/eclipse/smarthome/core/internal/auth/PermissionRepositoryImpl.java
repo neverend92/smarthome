@@ -7,8 +7,16 @@ import org.eclipse.smarthome.core.auth.Repository;
 
 public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
 
+    /**
+     * {@code Repository<Permission>} instance
+     */
     private static Repository<Permission> repository = null;
 
+    /**
+     * Gets an instance of the class, if already available, otherwise creates new object.
+     *
+     * @return
+     */
     public static Repository<Permission> getInstance() {
         if (repository == null) {
             repository = new PermissionRepositoryImpl();
@@ -17,15 +25,26 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
         return repository;
     }
 
+    /**
+     * Creates new {@code Repository<Permission>} object
+     */
     public PermissionRepositoryImpl() {
+        // create empty objects list.
         this.objects = new ArrayList<Permission>();
+        // set config file.
         this.configFile = "permissions.cfg";
-        this.handleConfigs(false);
+        // read configs.
+        this.readConfigs();
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#get(java.lang.String)
+     */
     @Override
     public Permission get(String name) {
-        this.handleConfigs(false);
+        this.readConfigs();
         // cut of parameter.
         int idx = name.indexOf('?');
         if (idx != -1) {
@@ -50,6 +69,11 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
+     */
     @Override
     protected Permission handleContent(String content) {
         Permission permission = new PermissionImpl();

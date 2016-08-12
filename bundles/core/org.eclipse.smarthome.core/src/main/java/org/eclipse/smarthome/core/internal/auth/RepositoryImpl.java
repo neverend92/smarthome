@@ -32,35 +32,55 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     protected final Logger logger = LoggerFactory.getLogger(UserRepositoryImpl.class);
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#create(org.eclipse.smarthome.core.auth.DTO)
+     */
     @Override
     public boolean create(E object) {
-        this.handleConfigs(false);
+        this.readConfigs();
         this.objects.add(object);
-        this.handleConfigs(true);
+        this.saveConfigs();
         return true;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#delete(java.lang.String)
+     */
     @Override
     public boolean delete(String name) {
-        this.handleConfigs(false);
+        this.readConfigs();
         E object = this.get(name);
         if (object == null) {
             return false;
         }
         this.objects.remove(object);
-        this.handleConfigs(true);
+        this.saveConfigs();
         return true;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#get(org.eclipse.smarthome.core.auth.DTO)
+     */
     @Override
     public E get(E object) {
-        this.handleConfigs(false);
+        this.readConfigs();
         return this.get(object.getId());
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#get(java.lang.String)
+     */
     @Override
     public E get(String name) {
-        this.handleConfigs(false);
+        this.readConfigs();
         for (E object : this.objects) {
             if (object.getId().equals(name)) {
                 return object;
@@ -69,15 +89,25 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#getAll()
+     */
     @Override
     public ArrayList<E> getAll() {
-        this.handleConfigs(false);
+        this.readConfigs();
         return this.objects;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#getBy(java.lang.String, java.lang.String)
+     */
     @Override
     public E getBy(String attribute, String name) {
-        this.handleConfigs(false);
+        this.readConfigs();
         for (E object : this.objects) {
             if (object.get(attribute).equals(name)) {
                 return object;
@@ -86,6 +116,11 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         return null;
     }
 
+    /**
+     * Get the path to config folder.
+     *
+     * @return String path to config folder.
+     */
     protected String getSourcePath() {
         String progArg = System.getProperty(CONFIG_DIR_PROG_ARGUMENT);
         String path;
@@ -98,6 +133,11 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         return path + File.separator + USERS_FOLDER;
     }
 
+    /**
+     * Reads or writes the config files, depending on parameter {@code saveFile}
+     *
+     * @param boolean saveFile
+     */
     protected void handleConfigs(boolean saveFile) {
         File dir = new File(this.getSourcePath());
         if (dir.exists()) {
@@ -120,11 +160,22 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         }
     }
 
+    /**
+     * Handles the content of the config file, needs to be overridden in subclasses.
+     *
+     * @param String content
+     * @return E Object builded from {@code content}
+     */
     protected E handleContent(String content) {
-        // needs override.
         return null;
     }
 
+    /**
+     * Parses one line of a config file.
+     *
+     * @param String line
+     * @return E Object builded from {@code line}
+     */
     protected E parseLine(String line) {
         String trimmedLine = line.trim();
         if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
@@ -151,6 +202,13 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         return object;
     }
 
+    /**
+     * Processed a config file and starts parsing each line.
+     *
+     * @param String configFile
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     protected void processConfigFile(File configFile) throws FileNotFoundException, IOException {
         logger.debug("Processing users file '{}'", configFile.getName());
 
@@ -166,10 +224,31 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         }
     }
 
+    /**
+     * reads a config file.
+     *
+     * @see handleConfigs(false)
+     */
+    protected void readConfigs() {
+        this.handleConfigs(false);
+    }
+
+    /**
+     * saves a config file, by writing new content to the file.
+     *
+     * @param String configFile
+     * @throws FileNotFoundException
+     * @throws IOException
+     */
     protected void saveConfigFile(File configFile) throws FileNotFoundException, IOException {
         IOUtils.writeLines(this.objects, null, new FileOutputStream(configFile));
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Repository#update(java.lang.String, org.eclipse.smarthome.core.auth.DTO)
+     */
     @Override
     public boolean update(String name, E object) {
         this.handleConfigs(false);
@@ -183,6 +262,15 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         this.objects.set(tmpId, object);
         this.handleConfigs(true);
         return true;
+    }
+
+    /**
+     * saves a config file.
+     *
+     * @see handleConfigs(true)
+     */
+    protected void saveConfigs() {
+        this.handleConfigs(true);
     }
 
 }

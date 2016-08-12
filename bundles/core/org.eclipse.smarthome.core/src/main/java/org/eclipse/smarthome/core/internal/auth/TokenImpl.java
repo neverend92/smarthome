@@ -4,11 +4,31 @@ import org.eclipse.smarthome.core.auth.Token;
 
 public class TokenImpl implements Token {
 
+    /**
+     * username
+     */
     private String username;
+
+    /**
+     * roles list.
+     */
     private String[] roles;
+
+    /**
+     * token
+     */
     private String token;
+
+    /**
+     * timestamp, when token expires.
+     */
     private int expiresTimstamp;
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#get(java.lang.String)
+     */
     @Override
     public String get(String attribute) {
         if (attribute.equals("username")) {
@@ -23,6 +43,11 @@ public class TokenImpl implements Token {
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#getAttributeName(java.lang.String)
+     */
     @Override
     public String getAttributeName(String attribute) {
         if (attribute.equals("username")) {
@@ -37,31 +62,61 @@ public class TokenImpl implements Token {
         return null;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Token#getExpiresTimestamp()
+     */
     @Override
     public int getExpiresTimestamp() {
         return this.expiresTimstamp;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#getId()
+     */
     @Override
     public String getId() {
         return this.getToken();
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#getRoles()
+     */
     @Override
     public String[] getRoles() {
         return this.roles;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Token#getToken()
+     */
     @Override
     public String getToken() {
         return this.token;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Token#getUsername()
+     */
     @Override
     public String getUsername() {
         return this.username;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#set(java.lang.String, java.lang.String)
+     */
     @Override
     public void set(String attribute, String value) {
         if (attribute.equals("username")) {
@@ -78,28 +133,54 @@ public class TokenImpl implements Token {
         }
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Token#setExpiresTimestamp(int)
+     */
     @Override
     public void setExpiresTimestamp(int expiresTimestamp) {
         this.expiresTimstamp = expiresTimestamp;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#setRoles(java.lang.String[])
+     */
     @Override
     public void setRoles(String[] roles) {
         this.roles = roles;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Token#setToken(java.lang.String)
+     */
     @Override
     public void setToken(String token) {
         this.token = token;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.Token#setUsername(java.lang.String)
+     */
     @Override
     public void setUsername(String username) {
         this.username = username;
     }
 
+    /*
+     * (non-Javadoc)
+     *
+     * @see java.lang.Object#toString()
+     */
     @Override
     public String toString() {
+        // Format <token>:<username>:<timestamp>
         StringBuilder sb = new StringBuilder();
         sb.append(this.getToken());
         sb.append(":");

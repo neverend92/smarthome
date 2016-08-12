@@ -8,8 +8,16 @@ import org.eclipse.smarthome.core.auth.User;
 
 public class UserRepositoryImpl extends RepositoryImpl<User> {
 
+    /**
+     * {@code Repository<User>} instance
+     */
     private static Repository<User> repository = null;
 
+    /**
+     * Gets an instance of the class, if already available, otherwise creates new object.
+     *
+     * @return
+     */
     public static Repository<User> getInstance() {
         if (repository == null) {
             repository = new UserRepositoryImpl();
@@ -18,12 +26,20 @@ public class UserRepositoryImpl extends RepositoryImpl<User> {
         return repository;
     }
 
+    /**
+     * Creates new {@code Repository<User>} object
+     */
     public UserRepositoryImpl() {
         this.objects = new ArrayList<User>();
         this.configFile = "users.cfg";
         this.handleConfigs(false);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
+     */
     @Override
     protected User handleContent(String content) {
         User user = new UserImpl();

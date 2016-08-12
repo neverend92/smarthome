@@ -8,8 +8,16 @@ import org.eclipse.smarthome.core.auth.Token;
 
 public class TokenRepositoryImpl extends RepositoryImpl<Token> {
 
+    /**
+     * {@code Repository<Token>} instance
+     */
     private static Repository<Token> repository = null;
 
+    /**
+     * Gets an instance of the class, if already available, otherwise creates new object.
+     *
+     * @return
+     */
     public static Repository<Token> getInstance() {
         if (repository == null) {
             repository = new TokenRepositoryImpl();
@@ -18,12 +26,20 @@ public class TokenRepositoryImpl extends RepositoryImpl<Token> {
         return repository;
     }
 
+    /**
+     * Creates new {@code Repository<Token>} object
+     */
     public TokenRepositoryImpl() {
         this.objects = new ArrayList<Token>();
         this.configFile = "tokens.cfg";
         this.handleConfigs(false);
     }
 
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
+     */
     @Override
     protected Token handleContent(String trimmedLine) {
         Token token = new TokenImpl();

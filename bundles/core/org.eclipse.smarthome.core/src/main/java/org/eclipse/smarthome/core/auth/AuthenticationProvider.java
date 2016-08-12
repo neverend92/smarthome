@@ -13,13 +13,11 @@ public interface AuthenticationProvider {
     public Authentication authenticate(Credentials credentials);
 
     /**
-     * Checks if the requested URL is allowed for the passed authentication
-     *
-     * @param auth
-     * @param reqUrl
+     * calculates the timestamp when token expires.
+     * 
      * @return
      */
-    public boolean isAllowed(Authentication auth, String reqUrl);
+    public int calcExpiresTimestamp();
 
     /**
      * Generates an API token.
@@ -29,10 +27,12 @@ public interface AuthenticationProvider {
     public String generateToken();
 
     /**
-     * calculates the timestamp when token expires.
-     * 
+     * Checks if the requested URL is allowed for the passed authentication
+     *
+     * @param auth
+     * @param reqUrl
      * @return
      */
-    public int calcExpiresTimestamp();
+    public boolean isAllowed(Authentication auth, String reqUrl);
 
 }
