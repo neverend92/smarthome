@@ -86,7 +86,7 @@ public class AuthenticatedHttpContext implements HttpContext {
 
         // check if user accesses the rest docs.
         // if so, append the apikey (token).
-        if (reqUrl.equals("/doc/index.html") && reqQuery == null) {
+        if (reqUrl.startsWith("/doc/index.html") && (reqQuery == null || reqQuery.indexOf(auth.getToken()) == -1)) {
             res.sendRedirect("/doc/index.html?api_key=" + auth.getToken());
             return true;
         }
