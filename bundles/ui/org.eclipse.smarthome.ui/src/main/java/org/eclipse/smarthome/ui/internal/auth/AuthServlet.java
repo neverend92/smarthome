@@ -72,6 +72,8 @@ public class AuthServlet extends HttpServlet {
                 roles += role;
             }
             innerContent = innerContent.replace("###roles###", roles);
+
+            innerContent = innerContent.replace("###token###", auth.getToken());
         }
 
         res.setContentType("text/html;charset=UTF-8");
