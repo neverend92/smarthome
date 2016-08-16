@@ -18,19 +18,29 @@ import org.slf4j.LoggerFactory;
 public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     /** The default users configuration directory name */
-    final static protected String USERS_FOLDER = "users";
+    protected static final String USERS_FOLDER = "users";
 
     /** The program argument name for setting the main config directory path */
-    final static protected String CONFIG_DIR_PROG_ARGUMENT = "smarthome.configdir";
+    protected static final String CONFIG_DIR_PROG_ARGUMENT = "smarthome.configdir";
 
     /** The default main configuration directory name */
-    final static protected String DEFAULT_CONFIG_FOLDER = "conf";
+    protected static final String DEFAULT_CONFIG_FOLDER = "conf";
+
+    /**
+     * repeat of reading config file. (current value: 1min)
+     */
+    protected static final int CONFIG_LIFETIME = 1 * 60;
 
     protected ArrayList<E> objects;
 
     protected String configFile;
 
-    protected final Logger logger = LoggerFactory.getLogger(UserRepositoryImpl.class);
+    protected final Logger logger = LoggerFactory.getLogger(RepositoryImpl.class);
+
+    /**
+     * timestamp, when config file was read.
+     */
+    protected int timestampLastRead = 0;
 
     /*
      * (non-Javadoc)
@@ -117,6 +127,15 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
     }
 
     /**
+     * Gets the current UNIX timestamp.
+     *
+     * @return
+     */
+    private int getCurrentTimestamp() {
+        return (int) (System.currentTimeMillis() / 1000L);
+    }
+
+    /**
      * Get the path to config folder.
      *
      * @return String path to config folder.
@@ -131,6 +150,15 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         }
 
         return path + File.separator + USERS_FOLDER;
+    }
+
+    /**
+     * Gets the timestamp when config file was read.
+     *
+     * @return
+     */
+    protected int getTimestampLastRead() {
+        return timestampLastRead;
     }
 
     /**
@@ -230,7 +258,13 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      * @see handleConfigs(false)
      */
     protected void readConfigs() {
-        this.handleConfigs(false);
+        // check if file is up to date or not!
+        // prevents multiple load of file.
+        int now = this.getCurrentTimestamp();
+        if (now - RepositoryImpl.CONFIG_LIFETIME > this.getTimestampLastRead()) {
+            this.handleConfigs(false);
+            this.setTimestampLastRead(now);
+        }
     }
 
     /**
@@ -242,6 +276,24 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     protected void saveConfigFile(File configFile) throws FileNotFoundException, IOException {
         IOUtils.writeLines(this.objects, null, new FileOutputStream(configFile));
+    }
+
+    /**
+     * saves a config file.
+     *
+     * @see handleConfigs(true)
+     */
+    protected void saveConfigs() {
+        this.handleConfigs(true);
+    }
+
+    /**
+     * Sets the timestamp when config file was read.
+     *
+     * @param timestampLastRead
+     */
+    protected void setTimestampLastRead(int timestampLastRead) {
+        this.timestampLastRead = timestampLastRead;
     }
 
     /*
@@ -262,15 +314,6 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
         this.objects.set(tmpId, object);
         this.handleConfigs(true);
         return true;
-    }
-
-    /**
-     * saves a config file.
-     *
-     * @see handleConfigs(true)
-     */
-    protected void saveConfigs() {
-        this.handleConfigs(true);
     }
 
 }

@@ -32,12 +32,12 @@ public class UserRepositoryImpl extends RepositoryImpl<User> {
     public UserRepositoryImpl() {
         this.objects = new ArrayList<User>();
         this.configFile = "users.cfg";
-        this.handleConfigs(false);
+        this.readConfigs();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
      */
     @Override

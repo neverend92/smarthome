@@ -102,6 +102,24 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
         return null;
     }
 
+    @Override
+    public Authentication authenticateToken(String passedToken) {
+        Token token = this.tokenRepository.get(passedToken);
+
+        if (token == null) {
+            return null;
+        }
+
+        User user = this.userRepository.get(token.getUsername());
+
+        if (user == null) {
+            return null;
+        }
+
+        return new AuthenticationImpl(user.getUsername(), user.getRoles(), token.getToken(),
+                token.getExpiresTimestamp());
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -158,6 +176,10 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
      */
     @Override
     public boolean isAllowed(Authentication auth, String reqUrl) {
+        if (auth == null) {
+            return false;
+        }
+
         Repository<Permission> repo = PermissionRepositoryImpl.getInstance();
         Permission permission = repo.get(reqUrl);
 

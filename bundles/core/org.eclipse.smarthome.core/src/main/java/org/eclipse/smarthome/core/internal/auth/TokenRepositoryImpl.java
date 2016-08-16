@@ -32,12 +32,12 @@ public class TokenRepositoryImpl extends RepositoryImpl<Token> {
     public TokenRepositoryImpl() {
         this.objects = new ArrayList<Token>();
         this.configFile = "tokens.cfg";
-        this.handleConfigs(false);
+        this.readConfigs();
     }
 
     /*
      * (non-Javadoc)
-     * 
+     *
      * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
      */
     @Override

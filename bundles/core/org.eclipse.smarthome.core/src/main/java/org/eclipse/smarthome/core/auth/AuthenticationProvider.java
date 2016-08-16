@@ -13,8 +13,16 @@ public interface AuthenticationProvider {
     public Authentication authenticate(Credentials credentials);
 
     /**
+     * Checks if the passed token is valid.
+     *
+     * @param token
+     * @return
+     */
+    public Authentication authenticateToken(String token);
+
+    /**
      * calculates the timestamp when token expires.
-     * 
+     *
      * @return
      */
     public int calcExpiresTimestamp();
