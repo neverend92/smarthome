@@ -28,7 +28,7 @@ public class AuthFilter implements ContainerRequestFilter {
 
     public AuthFilter() {
         pathUnauthorized = new ArrayList<String>();
-        pathUnauthorized.add("swagger.json");
+        // pathUnauthorized.add("swagger.json");
         pathUnauthorized.add("auth");
         logger.debug("### AuthFilter init...");
     }
