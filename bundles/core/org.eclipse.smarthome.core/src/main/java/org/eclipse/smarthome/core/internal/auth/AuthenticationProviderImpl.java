@@ -86,7 +86,7 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
             Token tmpToken = this.tokenRepository.getBy("username", token.getUsername());
             if (tmpToken != null) {
                 token.setToken(tmpToken.getToken());
-                if (!this.tokenRepository.update(token.getToken(), token)) {
+                if (!this.tokenRepository.update(token.getToken(), token, false)) {
                     return null;
                 }
                 auth.setToken(token.getToken());

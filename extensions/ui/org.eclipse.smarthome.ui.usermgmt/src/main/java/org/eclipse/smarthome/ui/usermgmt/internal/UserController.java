@@ -3,22 +3,24 @@ package org.eclipse.smarthome.ui.usermgmt.internal;
 import org.eclipse.smarthome.core.auth.User;
 import org.eclipse.smarthome.core.internal.auth.UserImpl;
 import org.eclipse.smarthome.core.internal.auth.UserRepositoryImpl;
+import org.eclipse.smarthome.ui.mgmt.internal.MgmtController;
+import org.eclipse.smarthome.ui.mgmt.internal.MgmtServlet;
 
-public class UserController extends Controller<User> {
+public class UserController extends MgmtController<User> {
 
-    public UserController(String urlAction, String urlId, UserMgmtServlet servlet) {
+    public UserController(String urlAction, String urlId, MgmtServlet servlet) {
         super(urlAction, urlId, servlet);
 
-        this.repository = UserRepositoryImpl.getInstance();
-        this.entityName = "user";
-        this.fieldName = "username";
+        this.setRepository(UserRepositoryImpl.getInstance());
+        this.setEntityName("user");
+        this.setFieldName("username");
 
-        this.attributes.add("username");
-        this.attributes.add("password");
+        this.getAttributes().add("username");
+        this.getAttributes().add("password");
     }
 
     @Override
-    protected User getModel() {
+    public User getModel() {
         return new UserImpl();
     }
 

@@ -10,11 +10,6 @@ public class TokenImpl implements Token {
     private String username;
 
     /**
-     * roles list.
-     */
-    private String[] roles;
-
-    /**
      * token
      */
     private String token;
@@ -40,6 +35,16 @@ public class TokenImpl implements Token {
         if (attribute.equals("expiresTimestamp")) {
             return String.valueOf(this.getExpiresTimestamp());
         }
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#getArray(java.lang.String)
+     */
+    @Override
+    public String[] getArray(String attribute) {
         return null;
     }
 
@@ -80,16 +85,6 @@ public class TokenImpl implements Token {
     @Override
     public String getId() {
         return this.getToken();
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.eclipse.smarthome.core.auth.DTO#getRoles()
-     */
-    @Override
-    public String[] getRoles() {
-        return this.roles;
     }
 
     /*
@@ -136,21 +131,21 @@ public class TokenImpl implements Token {
     /*
      * (non-Javadoc)
      *
-     * @see org.eclipse.smarthome.core.auth.Token#setExpiresTimestamp(int)
+     * @see org.eclipse.smarthome.core.auth.DTO#set(java.lang.String, java.lang.String[])
      */
     @Override
-    public void setExpiresTimestamp(int expiresTimestamp) {
-        this.expiresTimstamp = expiresTimestamp;
+    public void set(String attribute, String[] value) {
+
     }
 
     /*
      * (non-Javadoc)
      *
-     * @see org.eclipse.smarthome.core.auth.DTO#setRoles(java.lang.String[])
+     * @see org.eclipse.smarthome.core.auth.Token#setExpiresTimestamp(int)
      */
     @Override
-    public void setRoles(String[] roles) {
-        this.roles = roles;
+    public void setExpiresTimestamp(int expiresTimestamp) {
+        this.expiresTimstamp = expiresTimestamp;
     }
 
     /*
@@ -182,9 +177,9 @@ public class TokenImpl implements Token {
     public String toString() {
         // Format <token>:<username>:<timestamp>
         StringBuilder sb = new StringBuilder();
-        sb.append(this.getToken());
+        sb.append(Utils.escape(this.getToken()));
         sb.append(":");
-        sb.append(this.getUsername());
+        sb.append(Utils.escape(this.getUsername()));
         sb.append(":");
         sb.append(this.getExpiresTimestamp());
 

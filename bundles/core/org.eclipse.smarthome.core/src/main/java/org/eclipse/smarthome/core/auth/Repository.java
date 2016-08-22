@@ -54,11 +54,12 @@ public interface Repository<E extends DTO> {
 
     /**
      * Updates object.
-     * 
+     *
      * @param name
      * @param object
+     * @param changeRoles
      * @return
      */
-    public boolean update(String name, E object);
+    public boolean update(String name, E object, boolean changeRoles);
 
 }

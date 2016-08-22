@@ -30,6 +30,19 @@ public class PermissionImpl implements Permission {
     /*
      * (non-Javadoc)
      *
+     * @see org.eclipse.smarthome.core.auth.DTO#getArray(java.lang.String)
+     */
+    @Override
+    public String[] getArray(String attribute) {
+        if (attribute.equals("roles")) {
+            return this.getRoles();
+        }
+        return null;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see org.eclipse.smarthome.core.auth.DTO#getAttributeName(java.lang.String)
      */
     @Override
@@ -63,7 +76,7 @@ public class PermissionImpl implements Permission {
     /*
      * (non-Javadoc)
      *
-     * @see org.eclipse.smarthome.core.auth.DTO#getRoles()
+     * @see org.eclipse.smarthome.core.auth.Permission#getRoles()
      */
     @Override
     public String[] getRoles() {
@@ -79,8 +92,21 @@ public class PermissionImpl implements Permission {
     public void set(String attribute, String value) {
         if (attribute.equals("reqUrl")) {
             this.setReqUrl(value);
+            return;
         }
-        return;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
+     * @see org.eclipse.smarthome.core.auth.DTO#set(java.lang.String, java.lang.String[])
+     */
+    @Override
+    public void set(String attribute, String[] value) {
+        if (attribute.equals("roles")) {
+            this.setRoles(value);
+            return;
+        }
     }
 
     /*
@@ -96,7 +122,7 @@ public class PermissionImpl implements Permission {
     /*
      * (non-Javadoc)
      *
-     * @see org.eclipse.smarthome.core.auth.DTO#setRoles(java.lang.String[])
+     * @see org.eclipse.smarthome.core.auth.Permission#setRoles(java.lang.String[])
      */
     @Override
     public void setRoles(String[] roles) {
@@ -112,10 +138,10 @@ public class PermissionImpl implements Permission {
     public String toString() {
         // Format <reqUrl>,<role1>,<role2>,...
         StringBuilder sb = new StringBuilder();
-        sb.append(this.getReqUrl());
+        sb.append(Utils.escape(this.getReqUrl()));
         for (String role : this.getRoles()) {
             sb.append(",");
-            sb.append(role);
+            sb.append(Utils.escape(role));
         }
 
         return sb.toString();

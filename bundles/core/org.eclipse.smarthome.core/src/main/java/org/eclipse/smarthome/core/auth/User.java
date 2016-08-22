@@ -10,6 +10,13 @@ public interface User extends DTO {
     public String getPassword();
 
     /**
+     * Gets the roles.
+     *
+     * @return
+     */
+    public String[] getRoles();
+
+    /**
      * Gets username
      *
      * @return username
@@ -22,6 +29,13 @@ public interface User extends DTO {
      * @param password
      */
     public void setPassword(String password);
+
+    /**
+     * Sets the roles.
+     *
+     * @param roles
+     */
+    public void setRoles(String[] roles);
 
     /**
      * Sets username

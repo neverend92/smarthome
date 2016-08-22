@@ -222,9 +222,9 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
             for (int i = 0; i < roles.length; i++) {
                 roles[i] = content[i + 1].trim();
             }
-            object.setRoles(roles);
+            object.set("roles", roles);
         } else {
-            object.setRoles(new String[0]);
+            object.set("roles", new String[0]);
         }
 
         return object;
@@ -302,17 +302,20 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      * @see org.eclipse.smarthome.core.auth.Repository#update(java.lang.String, org.eclipse.smarthome.core.auth.DTO)
      */
     @Override
-    public boolean update(String name, E object) {
-        this.handleConfigs(false);
+    public boolean update(String name, E object, boolean changeRoles) {
+        this.readConfigs();
         E tmp = this.get(name);
         if (tmp == null) {
             return false;
         }
 
-        object.setRoles(tmp.getRoles());
+        if (!changeRoles) {
+            object.set("roles", tmp.getArray("roles"));
+        }
+
         int tmpId = this.objects.indexOf(tmp);
         this.objects.set(tmpId, object);
-        this.handleConfigs(true);
+        this.saveConfigs();
         return true;
     }
 

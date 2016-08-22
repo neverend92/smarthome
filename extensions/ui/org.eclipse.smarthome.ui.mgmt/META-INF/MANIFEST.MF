@@ -1,20 +1,20 @@
 Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
-Bundle-Name: Eclipse SmartHome User Mangement UI
+Bundle-Name: Eclipse SmartHome General Mangement UI
 Bundle-Vendor: Eclipse.org/SmartHome
 Bundle-Version: 0.9.0.qualifier
 Import-Package: javax.servlet,
  javax.servlet.http,
+ org.apache.commons.httpclient;version="3.1.0",
  org.apache.commons.io,
  org.eclipse.smarthome.core.auth,
  org.eclipse.smarthome.core.internal.auth,
- org.eclipse.smarthome.ui.mgmt.internal,
  org.openhab.ui.dashboard,
  org.osgi.framework,
  org.osgi.service.component,
  org.osgi.service.http,
  org.slf4j
-Export-Package: org.eclipse.smarthome.ui.usermgmt.internal
-Bundle-SymbolicName: org.eclipse.smarthome.ui.usermgmt
+Export-Package: org.eclipse.smarthome.ui.mgmt.internal
+Bundle-SymbolicName: org.eclipse.smarthome.ui.mgmt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
 Service-Component: OSGI-INF/*.xml

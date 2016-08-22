@@ -11,6 +11,14 @@ public interface DTO {
     public String get(String attribute);
 
     /**
+     * General method to get array attribute.
+     *
+     * @param attribute
+     * @return
+     */
+    public String[] getArray(String attribute);
+
+    /**
      * Gets the attributes name (user readable)
      *
      * @param attribute
@@ -26,13 +34,6 @@ public interface DTO {
     public String getId();
 
     /**
-     * Gets the roles list.
-     *
-     * @return
-     */
-    public String[] getRoles();
-
-    /**
      * Sets {@code attribute} to {@code value}
      *
      * @param attribute
@@ -41,10 +42,11 @@ public interface DTO {
     public void set(String attribute, String value);
 
     /**
-     * Sets roles list.
-     *
-     * @param roles
+     * Sets {@code attribute} to {@code value} (array)
+     * 
+     * @param attribute
+     * @param value
      */
-    public void setRoles(String[] roles);
+    public void set(String attribute, String[] value);
 
 }
