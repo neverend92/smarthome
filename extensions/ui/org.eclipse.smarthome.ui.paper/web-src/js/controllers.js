@@ -105,7 +105,7 @@ angular.module('PaperUI.controllers', [ 'PaperUI.constants' ]).controller('BodyC
         return numberOfNewDiscoveryResults;
     }
 
-    $http.get(restConfig.restPath + "/links/auto").then(function(response) {
+    $http.get(restConfig.restPath + "/links/auto?api_key=" + restConfig.apiKey).then(function(response) {
         if (response.data !== undefined) {
             $rootScope.advancedMode = !response.data;
             window.localStorage.setItem('paperui.advancedMode', !response.data);
@@ -156,7 +156,7 @@ angular.module('PaperUI.controllers', [ 'PaperUI.constants' ]).controller('BodyC
         $('.mask').remove();
         $scope.opened = null;
     });
-    $http.get(restConfig.restPath).then(function(response) {
+    $http.get(restConfig.restPath + "?api_key=" + restConfig.apiKey).then(function(response) {
         $scope.extensionEnabled = false;
         $scope.ruleEnabled = false;
         if (response.data && response.data.links) {

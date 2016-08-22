@@ -1,4 +1,4 @@
-angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function($httpProvider) {
+angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function($httpProvider, restConfig) {
     var accessToken = function getAccessToken() {
         return $('#authentication').data('access-token')
     }();
@@ -8,40 +8,61 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
         }();
         $httpProvider.defaults.headers.common['Authorization'] = authorizationHeader;
     }
+
+    var getQueryParams = function(qs) {
+        qs = qs.split('+').join(' ');
+
+        var params = {}, tokens, re = /[?&]?([^=]+)=([^&]*)/g;
+
+        while (tokens = re.exec(qs)) {
+            params[decodeURIComponent(tokens[1])] = decodeURIComponent(tokens[2]);
+        }
+
+        return params;
+    }
+    var query = getQueryParams(document.location.search);
+    var apiKey = query.api_key
+    restConfig.apiKey = apiKey;
+    if (restConfig.eventPath.indexOf('?') == -1) {
+        restConfig.eventPath += '?api_key=' + apiKey;
+    } else {
+        restConfig.eventPath += '&api_key=' + apiKey;
+    }
+
 }).factory('itemService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/items', {}, {
         getAll : {
             method : 'GET',
             isArray : true,
-            url : restConfig.restPath + '/items?recursive=true'
+            url : restConfig.restPath + '/items?api_key=' + restConfig.apiKey + '&recursive=true'
         },
         getByName : {
             method : 'GET',
             params : {
                 bindingId : '@itemName'
             },
-            url : restConfig.restPath + '/items/:itemName'
+            url : restConfig.restPath + '/items/:itemName?api_key=' + restConfig.apiKey
         },
         remove : {
             method : 'DELETE',
             params : {
                 itemName : '@itemName'
             },
-            url : restConfig.restPath + '/items/:itemName'
+            url : restConfig.restPath + '/items/:itemName?api_key=' + restConfig.apiKey
         },
         create : {
             method : 'PUT',
             params : {
                 itemName : '@itemName'
             },
-            url : restConfig.restPath + '/items/:itemName'
+            url : restConfig.restPath + '/items/:itemName?api_key=' + restConfig.apiKey
         },
         updateState : {
             method : 'PUT',
             params : {
                 itemName : '@itemName'
             },
-            url : restConfig.restPath + '/items/:itemName/state',
+            url : restConfig.restPath + '/items/:itemName/state?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -51,7 +72,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 itemName : '@itemName'
             },
-            url : restConfig.restPath + '/items/:itemName',
+            url : restConfig.restPath + '/items/:itemName?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -62,7 +83,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName',
                 memberItemName : '@memberItemName'
             },
-            url : restConfig.restPath + '/items/:itemName/members/:memberItemName'
+            url : restConfig.restPath + '/items/:itemName/members/:memberItemName?api_key=' + restConfig.apiKey
         },
         removeMember : {
             method : 'DELETE',
@@ -70,7 +91,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName',
                 memberItemName : '@memberItemName'
             },
-            url : restConfig.restPath + '/items/:itemName/members/:memberItemName'
+            url : restConfig.restPath + '/items/:itemName/members/:memberItemName?api_key=' + restConfig.apiKey
         },
         addTag : {
             method : 'PUT',
@@ -78,7 +99,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName',
                 tag : '@tag'
             },
-            url : restConfig.restPath + '/items/:itemName/tags/:tag'
+            url : restConfig.restPath + '/items/:itemName/tags/:tag?api_key=' + restConfig.apiKey
         },
         removeTag : {
             method : 'DELETE',
@@ -86,19 +107,20 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName',
                 tag : '@tag'
             },
-            url : restConfig.restPath + '/items/:itemName/tags/:tag'
+            url : restConfig.restPath + '/items/:itemName/tags/:tag?api_key=' + restConfig.apiKey
         },
         getNonRecursiveAll : {
             method : 'GET',
             isArray : true,
-            url : restConfig.restPath + '/items?recursive=false'
+            url : restConfig.restPath + '/items?api_key=' + restConfig.apiKey + '&recursive=false'
         },
     });
 }).factory('bindingService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/bindings', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/bindings?api_key=' + restConfig.apiKey
         },
         getConfigById : {
             method : 'GET',
@@ -110,7 +132,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                     return response.data;
                 }
             },
-            url : restConfig.restPath + '/bindings/:id/config'
+            url : restConfig.restPath + '/bindings/:id/config?api_key=' + restConfig.apiKey
         },
         updateConfig : {
             method : 'PUT',
@@ -120,21 +142,22 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 id : '@id'
             },
-            url : restConfig.restPath + '/bindings/:id/config'
+            url : restConfig.restPath + '/bindings/:id/config?api_key=' + restConfig.apiKey
         },
     });
 }).factory('inboxService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/inbox', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/inbox?api_key=' + restConfig.apiKey
         },
         approve : {
             method : 'POST',
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/inbox/:thingUID/approve',
+            url : restConfig.restPath + '/inbox/:thingUID/approve?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -144,28 +167,29 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/inbox/:thingUID/ignore'
+            url : restConfig.restPath + '/inbox/:thingUID/ignore?api_key=' + restConfig.apiKey
         },
         unignore : {
             method : 'POST',
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/inbox/:thingUID/unignore'
+            url : restConfig.restPath + '/inbox/:thingUID/unignore?api_key=' + restConfig.apiKey
         },
         remove : {
             method : 'DELETE',
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/inbox/:thingUID'
+            url : restConfig.restPath + '/inbox/:thingUID?api_key=' + restConfig.apiKey
         }
     })
 }).factory('discoveryService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/discovery', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/discovery?api_key=' + restConfig.apiKey
         },
         scan : {
             method : 'POST',
@@ -177,28 +201,30 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                     timeout : angular.fromJson(data)
                 }
             },
-            url : restConfig.restPath + '/discovery/bindings/:bindingId/scan'
+            url : restConfig.restPath + '/discovery/bindings/:bindingId/scan?api_key=' + restConfig.apiKey
         }
     });
 }).factory('thingTypeService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/thing-types', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/thing-types?api_key=' + restConfig.apiKey
         },
         getByUid : {
             method : 'GET',
             params : {
                 bindingId : '@thingTypeUID'
             },
-            url : restConfig.restPath + '/thing-types/:thingTypeUID'
+            url : restConfig.restPath + '/thing-types/:thingTypeUID?api_key=' + restConfig.apiKey
         }
     });
 }).factory('linkService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/links', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/links?api_key=' + restConfig.apiKey
         },
         link : {
             method : 'PUT',
@@ -206,7 +232,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName',
                 channelUID : '@channelUID'
             },
-            url : restConfig.restPath + '/links/:itemName/:channelUID'
+            url : restConfig.restPath + '/links/:itemName/:channelUID?api_key=' + restConfig.apiKey
         },
         unlink : {
             method : 'DELETE',
@@ -214,32 +240,33 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName',
                 channelUID : '@channelUID'
             },
-            url : restConfig.restPath + '/links/:itemName/:channelUID'
+            url : restConfig.restPath + '/links/:itemName/:channelUID?api_key=' + restConfig.apiKey
         }
     });
 }).factory('thingService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/things', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/things?api_key=' + restConfig.apiKey
         },
         getByUid : {
             method : 'GET',
             params : {
                 bindingId : '@thingUID'
             },
-            url : restConfig.restPath + '/things/:thingUID'
+            url : restConfig.restPath + '/things/:thingUID?api_key=' + restConfig.apiKey
         },
         remove : {
             method : 'DELETE',
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/things/:thingUID'
+            url : restConfig.restPath + '/things/:thingUID?api_key=' + restConfig.apiKey
         },
         add : {
             method : 'POST',
-            url : restConfig.restPath + '/things',
+            url : restConfig.restPath + '/things?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'application/json'
             }
@@ -249,7 +276,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/things/:thingUID',
+            url : restConfig.restPath + '/things/:thingUID?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'application/json'
             }
@@ -259,7 +286,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 thingUID : '@thingUID'
             },
-            url : restConfig.restPath + '/things/:thingUID/config',
+            url : restConfig.restPath + '/things/:thingUID/config?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'application/json'
             }
@@ -270,7 +297,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 thingUID : '@thingUID',
                 channelId : '@channelId'
             },
-            url : restConfig.restPath + '/things/:thingUID/channels/:channelId/link',
+            url : restConfig.restPath + '/things/:thingUID/channels/:channelId/link?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -281,21 +308,22 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 thingUID : '@thingUID',
                 channelId : '@channelId'
             },
-            url : restConfig.restPath + '/things/:thingUID/channels/:channelId/link',
+            url : restConfig.restPath + '/things/:thingUID/channels/:channelId/link?api_key=' + restConfig.apiKey,
         }
     });
 }).factory('serviceConfigService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/services', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/services?api_key=' + restConfig.apiKey
         },
         getById : {
             method : 'GET',
             params : {
                 id : '@id'
             },
-            url : restConfig.restPath + '/services/:id'
+            url : restConfig.restPath + '/services/:id?api_key=' + restConfig.apiKey
         },
         getConfigById : {
             method : 'GET',
@@ -307,7 +335,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                     return response.data;
                 }
             },
-            url : restConfig.restPath + '/services/:id/config'
+            url : restConfig.restPath + '/services/:id/config?api_key=' + restConfig.apiKey
         },
         updateConfig : {
             method : 'PUT',
@@ -317,88 +345,92 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 id : '@id'
             },
-            url : restConfig.restPath + '/services/:id/config'
+            url : restConfig.restPath + '/services/:id/config?api_key=' + restConfig.apiKey
         },
         deleteConfig : {
             method : 'DELETE',
             params : {
                 id : '@id'
             },
-            url : restConfig.restPath + '/services/:id/config'
+            url : restConfig.restPath + '/services/:id/config?api_key=' + restConfig.apiKey
         },
     });
 }).factory('configDescriptionService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/config-descriptions', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/config-descriptions?api_key=' + restConfig.apiKey
         },
         getByUri : {
             method : 'GET',
             params : {
                 uri : '@uri'
             },
-            url : restConfig.restPath + '/config-descriptions/:uri'
+            url : restConfig.restPath + '/config-descriptions/:uri?api_key=' + restConfig.apiKey
         },
     });
 }).factory('extensionService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/extensions', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/extensions?api_key=' + restConfig.apiKey
         },
         getByUri : {
             method : 'GET',
             params : {
                 uri : '@id'
             },
-            url : restConfig.restPath + '/extensions/:id'
+            url : restConfig.restPath + '/extensions/:id?api_key=' + restConfig.apiKey
         },
         getAllTypes : {
             method : 'GET',
             isArray : true,
-            url : restConfig.restPath + '/extensions/types'
+            url : restConfig.restPath + '/extensions/types?api_key=' + restConfig.apiKey
         },
         install : {
             method : 'POST',
             params : {
                 id : '@id'
             },
-            url : restConfig.restPath + '/extensions/:id/install'
+            url : restConfig.restPath + '/extensions/:id/install?api_key=' + restConfig.apiKey
         },
         uninstall : {
             method : 'POST',
             params : {
                 id : '@id'
             },
-            url : restConfig.restPath + '/extensions/:id/uninstall'
+            url : restConfig.restPath + '/extensions/:id/uninstall?api_key=' + restConfig.apiKey
         }
     });
 }).factory('ruleService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/rules', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/rules?api_key=' + restConfig.apiKey
         },
         getByUid : {
             method : 'GET',
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID'
+            url : restConfig.restPath + '/rules/:ruleUID?api_key=' + restConfig.apiKey
         },
         add : {
             method : 'POST',
             headers : {
                 'Content-Type' : 'application/json'
-            }
+            },
+            url : restConfig.restPath + '/rules?api_key=' + restConfig.apiKey
         },
         remove : {
             method : 'DELETE',
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID'
+            url : restConfig.restPath + '/rules/:ruleUID?api_key=' + restConfig.apiKey
         },
         getModuleConfigParameter : {
             method : 'GET',
@@ -410,14 +442,14 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                     content : data
                 };
             },
-            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script'
+            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script?api_key=' + restConfig.apiKey
         },
         setModuleConfigParameter : {
             method : 'PUT',
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script',
+            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -427,7 +459,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID',
+            url : restConfig.restPath + '/rules/:ruleUID?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'application/json'
             }
@@ -437,14 +469,14 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID/enable',
+            url : restConfig.restPath + '/rules/:ruleUID/enable?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
         },
         getRuleTemplates : {
             method : 'GET',
-            url : restConfig.restPath + '/templates',
+            url : restConfig.restPath + '/templates?api_key=' + restConfig.apiKey,
             isArray : true
         }
     });
@@ -452,14 +484,15 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
     return $resource(restConfig.restPath + '/module-types', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/module-types?api_key=' + restConfig.apiKey
         },
         getByType : {
             method : 'GET',
             params : {
                 mtype : '@mtype'
             },
-            url : restConfig.restPath + '/module-types?type=:mtype',
+            url : restConfig.restPath + '/module-types?type=:mtype?api_key=' + restConfig.apiKey,
             isArray : true
         },
         getByUid : {
@@ -467,7 +500,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID'
+            url : restConfig.restPath + '/rules/:ruleUID?api_key=' + restConfig.apiKey
         },
         getModuleConfigByUid : {
             method : 'GET',
@@ -477,7 +510,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 id : '@id'
 
             },
-            url : restConfig.restPath + '/rules/:ruleUID/:moduleCategory/:id/config'
+            url : restConfig.restPath + '/rules/:ruleUID/:moduleCategory/:id/config?api_key=' + restConfig.apiKey
         },
         add : {
             method : 'POST',
@@ -490,7 +523,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID'
+            url : restConfig.restPath + '/rules/:ruleUID?api_key=' + restConfig.apiKey
         },
         getModuleConfigParameter : {
             method : 'GET',
@@ -502,14 +535,14 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                     content : data
                 };
             },
-            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script'
+            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script?api_key=' + restConfig.apiKey
         },
         setModuleConfigParameter : {
             method : 'PUT',
             params : {
                 ruleUID : '@ruleUID'
             },
-            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script',
+            url : restConfig.restPath + '/rules/:ruleUID/actions/action/config/script?api_key=' + restConfig.apiKey,
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -519,14 +552,15 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
     return $resource(restConfig.restPath + '/channel-types', {}, {
         getAll : {
             method : 'GET',
-            isArray : true
+            isArray : true,
+            url : restConfig.restPath + '/channel-types?api_key=' + restConfig.apiKey
         },
         getByUri : {
             method : 'GET',
             params : {
                 channelTypeUID : '@channelTypeUID'
             },
-            url : restConfig.restPath + '/channel-types/:channelTypeUID'
+            url : restConfig.restPath + '/channel-types/:channelTypeUID?api_key=' + restConfig.apiKey
         },
     });
 });

@@ -91,6 +91,13 @@ public class AuthenticatedHttpContext implements HttpContext {
             return true;
         }
 
+        // check if user accesses the paper ui.
+        // if so, append the apikey (token).
+        if (reqUrl.startsWith("/ui/index.html") && (reqQuery == null || reqQuery.indexOf(auth.getToken()) == -1)) {
+            res.sendRedirect("/ui/index.html?api_key=" + auth.getToken());
+            return true;
+        }
+
         // set headers, so that browsers don't try to cache pages.
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.
         res.setHeader("Pragma", "no-cache"); // HTTP 1.0.
