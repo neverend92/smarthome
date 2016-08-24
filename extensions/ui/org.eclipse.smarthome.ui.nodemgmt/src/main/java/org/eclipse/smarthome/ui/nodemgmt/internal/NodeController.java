@@ -1,45 +1,76 @@
 package org.eclipse.smarthome.ui.nodemgmt.internal;
 
-import java.util.ArrayList;
+import java.net.MalformedURLException;
+import java.net.URL;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpSession;
+import org.eclipse.smarthome.ui.mgmt.internal.MgmtController;
+import org.eclipse.smarthome.ui.mgmt.internal.MgmtServlet;
+import org.eclipse.smarthome.ui.nodemgmt.Node;
 
-import org.eclipse.smarthome.ui.nodemgmt.NodeRepository;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+public class NodeController extends MgmtController<Node> {
 
-public class NodeController {
+    public NodeController(String urlAction, String urlId, MgmtServlet servlet) {
+        super(urlAction, urlId, servlet);
 
-    protected final Logger logger = LoggerFactory.getLogger(NodeController.class);
+        this.setRepository(NodeRepositoryImpl.getInstance());
+        this.setEntityName("node");
+        this.setFieldName("ip");
 
-    protected NodeMgmtServlet servlet;
-
-    protected HttpSession session;
-
-    protected NodeRepository repository;
-    protected String entityName;
-    protected String fieldName;
-    protected ArrayList<String> attributes;
-
-    protected String urlAction;
-    protected String urlId;
-
-    public NodeController(String urlAction, String urlId, NodeMgmtServlet servlet) {
-        this.urlAction = urlAction;
-        this.urlId = urlId;
-        this.servlet = servlet;
-        this.attributes = new ArrayList<String>();
+        this.getAttributes().add("ip");
+        this.getAttributes().add("description");
+        this.getAttributes().add("credentials");
     }
 
-    public boolean postContent(HttpServletRequest req) {
-        // TODO Auto-generated method stub
-        return false;
+    @Override
+    public Node getModel() {
+        return new NodeImpl();
     }
 
-    public String getContent() {
-        // TODO Auto-generated method stub
-        return null;
+    @Override
+    public String getEdit() {
+        String content = super.getEdit();
+
+        Node node = this.getRepository().get(this.getUrlId());
+
+        if (node == null) {
+            return null;
+        }
+
+        String template = this.getServlet().getTemplateFile(this.getPlural(this.getEntityName()) + "/edit-extra");
+
+        boolean isReachable = false;
+        try {
+            URL url = new URL(node.getIP() + "/rest");
+            isReachable = true;
+        } catch (MalformedURLException e) {
+            e.printStackTrace();
+        }
+
+        String reachable = "<span class=\"label label-danger\">offline</span>";
+        if (isReachable) {
+            reachable = "<span class=\"label label-success\">online</span>";
+        }
+        template = template.replace("###REACHABLE###", reachable);
+
+        boolean hasValidCreds = false;
+        // TODO
+        String validCreds = "<span class=\"label label-danger\">credentials wrong</span>";
+        if (hasValidCreds) {
+            validCreds = "<span class=\"label label-success\">credentials correct</span>";
+        }
+        template = template.replace("###VALIDCREDS###", validCreds);
+
+        boolean hasValidConfig = false;
+        // TODO
+        String validConfig = "<span class=\"label label-danger\">config invalid/incomplete</span>";
+        if (hasValidConfig) {
+            validConfig = "<span class=\"label label-success\">config valid</span>";
+        }
+        template = template.replace("###VALIDCONFIG###", validConfig);
+
+        content += template;
+        return content;
+
     }
 
 }

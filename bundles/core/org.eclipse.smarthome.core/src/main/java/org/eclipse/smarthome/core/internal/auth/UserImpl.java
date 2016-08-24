@@ -72,7 +72,7 @@ public class UserImpl implements User {
      */
     @Override
     public String getId() {
-        return this.username;
+        return this.getUsername();
     }
 
     /*
@@ -164,26 +164,6 @@ public class UserImpl implements User {
     @Override
     public void setUsername(String username) {
         this.username = username;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        // Format <username>:<password>,<role1>,<role2>,...
-        StringBuilder sb = new StringBuilder();
-        sb.append(Utils.escape(this.getUsername()));
-        sb.append(":");
-        sb.append(Utils.escape(this.getPassword()));
-        for (String role : this.getRoles()) {
-            sb.append(",");
-            sb.append(Utils.escape(role));
-        }
-
-        return sb.toString();
     }
 
 }

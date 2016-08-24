@@ -11,7 +11,6 @@ public class UserMgmtServlet extends MgmtServlet {
     private static final long serialVersionUID = -2921929026201615993L;
 
     public UserMgmtServlet(String baseUrl, Bundle bundle) {
-
         this.setBaseUrl(baseUrl);
 
         this.setDefaultController("users");

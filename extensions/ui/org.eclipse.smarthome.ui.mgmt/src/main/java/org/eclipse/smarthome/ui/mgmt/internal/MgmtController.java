@@ -155,6 +155,7 @@ public class MgmtController<E extends DTO> {
         String content = "";
 
         ArrayList<E> objects = this.getRepository().getAll();
+
         for (E object : objects) {
             content += "<tr>";
 
@@ -176,7 +177,7 @@ public class MgmtController<E extends DTO> {
 
             // action buttons.
             content += "<td>";
-            content += "<a class=\"btn btn-warning\" href=\"/usermgmt/app?controller="
+            content += "<a class=\"btn btn-warning\" href=\"" + this.getServlet().getBaseUrl() + "?controller="
                     + this.getPlural(this.getEntityName()) + "&action=edit&id=" + object.getId() + "\">Edit "
                     + this.getUcFirst(this.getEntityName()) + "</a>";
             content += this.getDeleteForm(object.getId());
@@ -185,12 +186,17 @@ public class MgmtController<E extends DTO> {
             content += "</tr>";
         }
 
+        if (content.isEmpty()) {
+            content = "<tr><td colspan=\"" + (this.getAttributes().size() + 1)
+                    + "\"><i>No records found.</i></td></tr>";
+        }
+
         return template.replace("<!--INNERTABLE-->", content);
     }
 
     protected E getModel() {
         // needs override
-        return null;
+        throw new AbstractMethodError("Method should be overriden by subclass.");
     }
 
     /**
@@ -229,6 +235,9 @@ public class MgmtController<E extends DTO> {
      * @return
      */
     protected String getRoleForms(String[] roles) {
+        if (roles == null) {
+            return "";
+        }
         StringBuilder sb = new StringBuilder();
         sb.append("<div class=\"line\"><div class=\"decorator\"></div><hr></div>");
         sb.append("<label>Edit Roles of " + this.getUcFirst(this.getEntityName()) + "</label>");
@@ -237,8 +246,8 @@ public class MgmtController<E extends DTO> {
             sb.append("<tr>");
             sb.append("<td>" + role + "</td>");
             sb.append("<td>");
-            sb.append("<form method=\"POST\" action=\"/usermgmt/app?controller=" + this.getPlural(this.getEntityName())
-                    + "&action=deleteRole\">");
+            sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
+                    + this.getPlural(this.getEntityName()) + "&action=deleteRole\">");
             sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
             sb.append("<input type=\"hidden\" name=\"role\" value=\"" + role + "\">");
             sb.append("<input type=\"submit\" onclick=\"return confirm('Do you really want to delete the role " + role
@@ -248,8 +257,8 @@ public class MgmtController<E extends DTO> {
             sb.append("</tr>");
         }
         sb.append("<tr><td>");
-        sb.append("<form method=\"POST\" action=\"/usermgmt/app?controller=" + this.getPlural(this.getEntityName())
-                + "&action=addRole\">");
+        sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
+                + this.getPlural(this.getEntityName()) + "&action=addRole\">");
         sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
         sb.append("<input type=\"text\" class=\"form-control\" name=\"role\" placeholder=\"New Role\">");
         sb.append("</td><td>");

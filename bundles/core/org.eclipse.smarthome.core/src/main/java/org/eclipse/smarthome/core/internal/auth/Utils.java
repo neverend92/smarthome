@@ -3,13 +3,21 @@ package org.eclipse.smarthome.core.internal.auth;
 public class Utils {
 
     /**
-     * Escapes "," and ":" to make config file work.
+     * Escapes all {@code chars} to make config file work.
      *
-     * @param s
+     * @param str
+     * @param toReplace
      * @return
      */
-    public static String escape(String s) {
-        return s.replaceAll(",", "").replaceAll(":", "");
+    public static String escape(String str, String[] toReplace) {
+        for (String s : toReplace) {
+            str = str.replaceAll(s, "");
+        }
+        return str;
+    }
+
+    public static String escape(String str) {
+        return Utils.escape(str, new String[] { ",", ":" });
     }
 
 }

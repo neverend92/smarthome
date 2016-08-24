@@ -35,6 +35,7 @@ Bundle-License: http://www.eclipse.org/legal/epl-v10.html
 Import-Package: com.google.common.base,
  com.google.common.collect,
  com.google.gson,
+ com.google.gson.reflect;version="2.5.0",
  javax.servlet.http,
  javax.xml.bind;resolution:=optional,
  org.apache.commons.httpclient,

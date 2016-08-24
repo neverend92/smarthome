@@ -1,10 +1,12 @@
 package org.eclipse.smarthome.core.internal.auth;
 
 import java.util.ArrayList;
+import java.util.List;
 
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.smarthome.core.auth.Repository;
 import org.eclipse.smarthome.core.auth.User;
+
+import com.google.gson.reflect.TypeToken;
 
 public class UserRepositoryImpl extends RepositoryImpl<User> {
 
@@ -30,27 +32,16 @@ public class UserRepositoryImpl extends RepositoryImpl<User> {
      * Creates new {@code Repository<User>} object
      */
     public UserRepositoryImpl() {
-        this.objects = new ArrayList<User>();
-        this.configFile = "users.cfg";
-        this.readConfigs();
-    }
+        // create empty objects list.
+        this.setObjects(new ArrayList<User>());
+        // set config file
+        this.setConfigFile("users.json");
+        // set class
+        this.setGsonType(new TypeToken<List<UserImpl>>() {
+        }.getType());
+        // read configs.
+        this.readConfigFile();
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
-     */
-    @Override
-    protected User handleContent(String content) {
-        User user = new UserImpl();
-
-        if (content.indexOf(":") != -1) {
-            user.setUsername(StringUtils.substringBefore(content, ":").trim());
-            user.setPassword(StringUtils.substringAfter(content, ":").trim());
-            return user;
-        }
-
-        return null;
     }
 
 }

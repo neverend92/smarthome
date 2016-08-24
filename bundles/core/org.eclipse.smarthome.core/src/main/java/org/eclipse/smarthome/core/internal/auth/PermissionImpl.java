@@ -60,7 +60,7 @@ public class PermissionImpl implements Permission {
      */
     @Override
     public String getId() {
-        return this.reqUrl;
+        return this.getReqUrl();
     }
 
     /*
@@ -127,24 +127,6 @@ public class PermissionImpl implements Permission {
     @Override
     public void setRoles(String[] roles) {
         this.roles = roles;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        // Format <reqUrl>,<role1>,<role2>,...
-        StringBuilder sb = new StringBuilder();
-        sb.append(Utils.escape(this.getReqUrl()));
-        for (String role : this.getRoles()) {
-            sb.append(",");
-            sb.append(Utils.escape(role));
-        }
-
-        return sb.toString();
     }
 
 }

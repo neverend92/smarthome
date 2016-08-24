@@ -59,7 +59,7 @@ public class NodeMgmtService {
     }
 
     protected HttpServlet createServlet() {
-        return new NodeMgmtServlet(bundleContext.getBundle());
+        return new NodeMgmtServlet(MGMT_ALIAS + "/" + SERVLET_NAME, bundleContext.getBundle());
     }
 
 }

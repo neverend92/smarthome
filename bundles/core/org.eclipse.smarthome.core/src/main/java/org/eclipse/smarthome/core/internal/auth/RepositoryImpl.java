@@ -1,19 +1,22 @@
 package org.eclipse.smarthome.core.internal.auth;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
+import java.io.FileReader;
 import java.io.IOException;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.List;
 
 import org.apache.commons.io.IOUtils;
-import org.apache.commons.lang.StringUtils;
 import org.eclipse.smarthome.core.auth.DTO;
 import org.eclipse.smarthome.core.auth.Repository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import com.google.gson.Gson;
+import com.google.gson.JsonIOException;
+import com.google.gson.JsonSyntaxException;
 
 public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
@@ -37,6 +40,8 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
     protected final Logger logger = LoggerFactory.getLogger(RepositoryImpl.class);
 
+    protected Type gsonType;
+
     /**
      * timestamp, when config file was read.
      */
@@ -49,9 +54,9 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public boolean create(E object) {
-        this.readConfigs();
-        this.objects.add(object);
-        this.saveConfigs();
+        this.readConfigFile();
+        this.getObjects().add(object);
+        this.saveConfigFile();
         return true;
     }
 
@@ -62,13 +67,13 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public boolean delete(String name) {
-        this.readConfigs();
+        this.readConfigFile();
         E object = this.get(name);
         if (object == null) {
             return false;
         }
-        this.objects.remove(object);
-        this.saveConfigs();
+        this.getObjects().remove(object);
+        this.saveConfigFile();
         return true;
     }
 
@@ -79,7 +84,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public E get(E object) {
-        this.readConfigs();
+        this.readConfigFile();
         return this.get(object.getId());
     }
 
@@ -90,8 +95,8 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public E get(String name) {
-        this.readConfigs();
-        for (E object : this.objects) {
+        this.readConfigFile();
+        for (E object : this.getObjects()) {
             if (object.getId().equals(name)) {
                 return object;
             }
@@ -106,8 +111,8 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public ArrayList<E> getAll() {
-        this.readConfigs();
-        return this.objects;
+        this.readConfigFile();
+        return this.getObjects();
     }
 
     /*
@@ -117,13 +122,59 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public E getBy(String attribute, String name) {
-        this.readConfigs();
-        for (E object : this.objects) {
+        this.readConfigFile();
+        for (E object : this.getObjects()) {
             if (object.get(attribute).equals(name)) {
                 return object;
             }
         }
         return null;
+    }
+
+    public Type getGsonType() {
+        return gsonType;
+    }
+
+    /**
+     * Gets the config file
+     *
+     * @return
+     */
+    public String getConfigFile() {
+        return configFile;
+    }
+
+    /**
+     * Gets the config file.
+     * if it doesn't exists yet, file is created.
+     *
+     * @return
+     * @throws IOException
+     */
+    protected File getConfigFileObject() throws IOException {
+        // enter config dir.
+        File dir = new File(this.getSourcePath());
+        // check if config dir exists.
+        if (!dir.exists()) {
+            throw new FileNotFoundException("Source directory doesn't exist.");
+        }
+
+        // get config file from dir by using a filename filter.
+        File[] files = dir.listFiles(new ConfigFilenameFilter(this.getConfigFile()));
+        File file = null;
+        // check if config file exists.
+        if (files.length > 0) {
+            return files[0];
+        }
+
+        // if file doesn't exists, create it!
+        file = new File(this.getSourcePath() + "/" + this.getConfigFile());
+        try {
+            file.createNewFile();
+            return file;
+        } catch (IOException e) {
+            throw new IOException("Could not create config file: " + this.getConfigFile());
+        }
     }
 
     /**
@@ -133,6 +184,15 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     private int getCurrentTimestamp() {
         return (int) (System.currentTimeMillis() / 1000L);
+    }
+
+    /**
+     * Gets the objects list.
+     *
+     * @return
+     */
+    public ArrayList<E> getObjects() {
+        return objects;
     }
 
     /**
@@ -162,129 +222,73 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
     }
 
     /**
-     * Reads or writes the config files, depending on parameter {@code saveFile}
-     *
-     * @param boolean saveFile
+     * Reads the config file.
      */
-    protected void handleConfigs(boolean saveFile) {
-        File dir = new File(this.getSourcePath());
-        if (dir.exists()) {
-            File[] files = dir.listFiles();
-            for (File file : files) {
-                try {
-                    if (!file.isDirectory() && file.getName().equals(this.configFile)) {
-                        if (saveFile) {
-                            this.saveConfigFile(file);
-                        } else {
-                            this.processConfigFile(file);
-                        }
-                    }
-                } catch (IOException e) {
-                    logger.warn("Could not process users file '{}': {}", file.getName(), e);
-                }
-            }
-        } else {
-            logger.debug("User folder '{}' does not exist.", dir.toString());
-        }
-    }
-
-    /**
-     * Handles the content of the config file, needs to be overridden in subclasses.
-     *
-     * @param String content
-     * @return E Object builded from {@code content}
-     */
-    protected E handleContent(String content) {
-        return null;
-    }
-
-    /**
-     * Parses one line of a config file.
-     *
-     * @param String line
-     * @return E Object builded from {@code line}
-     */
-    protected E parseLine(String line) {
-        String trimmedLine = line.trim();
-        if (trimmedLine.startsWith("#") || trimmedLine.isEmpty()) {
-            return null;
-        }
-
-        String[] content = StringUtils.split(trimmedLine, ',');
-        if (content.length < 1) {
-            return null;
-        }
-
-        E object = this.handleContent(content[0]);
-
-        if (content.length > 1) {
-            String[] roles = new String[content.length - 1];
-            for (int i = 0; i < roles.length; i++) {
-                roles[i] = content[i + 1].trim();
-            }
-            object.set("roles", roles);
-        } else {
-            object.set("roles", new String[0]);
-        }
-
-        return object;
-    }
-
-    /**
-     * Processed a config file and starts parsing each line.
-     *
-     * @param String configFile
-     * @throws FileNotFoundException
-     * @throws IOException
-     */
-    protected void processConfigFile(File configFile) throws FileNotFoundException, IOException {
-        logger.debug("Processing users file '{}'", configFile.getName());
-
-        List<String> lines = IOUtils.readLines(new FileInputStream(configFile));
-
-        this.objects = new ArrayList<E>();
-        for (String line : lines) {
-            E object = parseLine(line);
-            if (object != null) {
-                this.objects.add(object);
-            }
-
-        }
-    }
-
-    /**
-     * reads a config file.
-     *
-     * @see handleConfigs(false)
-     */
-    protected void readConfigs() {
-        // check if file is up to date or not!
-        // prevents multiple load of file.
+    protected void readConfigFile() {
+        // get current time.
         int now = this.getCurrentTimestamp();
-        if (now - RepositoryImpl.CONFIG_LIFETIME > this.getTimestampLastRead()) {
-            this.handleConfigs(false);
-            this.setTimestampLastRead(now);
+        // check if config is still valid (not older than 1min.)
+        if (now - RepositoryImpl.CONFIG_LIFETIME < this.getTimestampLastRead()) {
+            // if valid, dont read again.
+            return;
+        }
+
+        // read config again, and set timestamp to now.
+        this.setTimestampLastRead(now);
+        // init gson
+        Gson gson = new Gson();
+        ArrayList<E> jsonObjects = new ArrayList<E>();
+        try {
+            // get objects from json.
+            jsonObjects = gson.fromJson(new FileReader(this.getConfigFileObject()), this.getGsonType());
+        } catch (JsonSyntaxException | JsonIOException | IOException e) {
+            logger.warn("Could not read config file {}.", this.getConfigFile());
+            return;
+        }
+
+        // set new objects.
+        this.setObjects(jsonObjects);
+    }
+
+    /**
+     * Writes the config file.
+     */
+    protected void saveConfigFile() {
+        Gson gson = new Gson();
+        String json = gson.toJson(this.getObjects(), this.getGsonType());
+        try {
+            IOUtils.write(json, new FileOutputStream(this.getConfigFileObject()));
+        } catch (IOException e) {
+            logger.warn("Could not write config file {}.", this.getConfigFile());
+            return;
         }
     }
 
     /**
-     * saves a config file, by writing new content to the file.
+     * Sets the class for E[]
      *
-     * @param String configFile
-     * @throws FileNotFoundException
-     * @throws IOException
+     * @param classE
      */
-    protected void saveConfigFile(File configFile) throws FileNotFoundException, IOException {
-        IOUtils.writeLines(this.objects, null, new FileOutputStream(configFile));
+    public void setGsonType(Type gsonType) {
+        this.gsonType = gsonType;
     }
 
     /**
-     * saves a config file.
+     * Sets the config file.
      *
-     * @see handleConfigs(true)
+     * @param configFile
      */
-    protected void saveConfigs() {
-        this.handleConfigs(true);
+    public void setConfigFile(String configFile) {
+        this.configFile = configFile;
+    }
+
+    /**
+     * Sets the objects list.
+     *
+     * @param objects
+     */
+    public void setObjects(ArrayList<E> objects) {
+        this.objects = objects;
     }
 
     /**
@@ -303,7 +307,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
      */
     @Override
     public boolean update(String name, E object, boolean changeRoles) {
-        this.readConfigs();
+        this.readConfigFile();
         E tmp = this.get(name);
         if (tmp == null) {
             return false;
@@ -315,7 +319,7 @@ public class RepositoryImpl<E extends DTO> implements Repository<E> {
 
         int tmpId = this.objects.indexOf(tmp);
         this.objects.set(tmpId, object);
-        this.saveConfigs();
+        this.saveConfigFile();
         return true;
     }
 

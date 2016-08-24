@@ -260,7 +260,7 @@ public class MgmtServlet extends HttpServlet {
      * @param string
      * @return
      */
-    protected String getTemplateFile(String name) {
+    public String getTemplateFile(String name) {
         String template;
         URL url = this.bundle.getEntry("templates/" + name + ".html");
         if (url != null) {

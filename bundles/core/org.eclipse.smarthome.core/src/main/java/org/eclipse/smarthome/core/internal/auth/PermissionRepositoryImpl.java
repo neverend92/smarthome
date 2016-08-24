@@ -1,9 +1,12 @@
 package org.eclipse.smarthome.core.internal.auth;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import org.eclipse.smarthome.core.auth.Permission;
 import org.eclipse.smarthome.core.auth.Repository;
+
+import com.google.gson.reflect.TypeToken;
 
 public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
 
@@ -30,11 +33,14 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
      */
     public PermissionRepositoryImpl() {
         // create empty objects list.
-        this.objects = new ArrayList<Permission>();
+        this.setObjects(new ArrayList<Permission>());
         // set config file.
-        this.configFile = "permissions.cfg";
+        this.setConfigFile("permissions.json");
+        // set class
+        this.setGsonType(new TypeToken<List<PermissionImpl>>() {
+        }.getType());
         // read configs.
-        this.readConfigs();
+        this.readConfigFile();
     }
 
     /*
@@ -44,7 +50,7 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
      */
     @Override
     public Permission get(String name) {
-        this.readConfigs();
+        this.readConfigFile();
         // cut of parameter.
         int idx = name.indexOf('?');
         if (idx != -1) {
@@ -67,20 +73,6 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
             }
         }
         return null;
-    }
-
-    /*
-     * (non-Javadoc)
-     *
-     * @see org.eclipse.smarthome.core.internal.auth.RepositoryImpl#handleContent(java.lang.String)
-     */
-    @Override
-    protected Permission handleContent(String content) {
-        Permission permission = new PermissionImpl();
-
-        permission.setReqUrl(content);
-
-        return permission;
     }
 
 }

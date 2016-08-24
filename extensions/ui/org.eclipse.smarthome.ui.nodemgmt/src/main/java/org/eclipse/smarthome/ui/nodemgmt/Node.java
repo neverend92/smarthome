@@ -1,19 +1,19 @@
 package org.eclipse.smarthome.ui.nodemgmt;
 
-import org.apache.commons.httpclient.Credentials;
+import org.eclipse.smarthome.core.auth.DTO;
 
-public interface Node {
+public interface Node extends DTO {
 
     public String getIP();
 
     public void setIP(String ip);
 
-    public String getDesc();
+    public String getDescription();
 
-    public void setDesc(String desc);
+    public void setDescription(String description);
 
-    public Credentials getCredentials();
+    public String getCredentials();
 
-    public void setCredentials(Credentials creds);
+    public void setCredentials(String credentials);
 
 }

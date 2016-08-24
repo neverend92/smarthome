@@ -168,22 +168,4 @@ public class TokenImpl implements Token {
         this.username = username;
     }
 
-    /*
-     * (non-Javadoc)
-     *
-     * @see java.lang.Object#toString()
-     */
-    @Override
-    public String toString() {
-        // Format <token>:<username>:<timestamp>
-        StringBuilder sb = new StringBuilder();
-        sb.append(Utils.escape(this.getToken()));
-        sb.append(":");
-        sb.append(Utils.escape(this.getUsername()));
-        sb.append(":");
-        sb.append(this.getExpiresTimestamp());
-
-        return sb.toString();
-    }
-
 }
