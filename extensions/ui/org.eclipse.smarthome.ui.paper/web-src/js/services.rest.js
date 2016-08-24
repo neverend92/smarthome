@@ -367,6 +367,13 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 uri : '@uri'
             },
+            transformResponse : function(response, headerGetter, status) {
+                var response = angular.fromJson(response);
+                if (status == 404) {
+                    response.showError = false;
+                }
+                return response;
+            },
             url : restConfig.restPath + '/config-descriptions/:uri?api_key=' + restConfig.apiKey
         },
     });
