@@ -97,6 +97,16 @@
 		}
 	})();
 
+	function getCookie(name) {
+        var regexp = new RegExp("(?:^" + name + "|;\s*"+ name + ")=(.*?)(?:;|$)", "g");
+        var result = regexp.exec(document.cookie);
+        return (result === null) ? null : result[1];
+    }
+
+	function getApiKey() {
+        return getCookie("api_key");
+	}
+
 	function createDOM(text) {
 		var
 			e = document.createElement("div");
@@ -1172,7 +1182,7 @@
 	function controlChangeHandler(event) {
 		ajax({
 			type: "POST",
-			url: "/rest/items/" + event.detail.item,
+			url: "/rest/items/" + event.detail.item + "?api_key=" + getApiKey(),
 			data: event.detail.value,
 			headers: {"Content-Type": "text/plain"}
 		});
@@ -1417,7 +1427,7 @@
 			_t = this;
 
 		_t.navigate = function(){};
-		_t.source = new EventSource("/rest/events?topics=smarthome/items/*/state");
+		_t.source = new EventSource("/rest/events?api_key=" + getApiKey() + "&topics=smarthome/items/*/state");
 		_t.source.addEventListener("message", function(payload) {
 			if (_t.paused) {
 				return;
@@ -1490,7 +1500,7 @@
 				cacheSupression = Math.random().toString(16).slice(2);
 
 			_t.request = ajax({
-				url: "/rest/sitemaps/" + _t.sitemap + "/" + _t.page + "?_=" + cacheSupression,
+				url: "/rest/sitemaps/" + _t.sitemap + "/" + _t.page + "?_=" + cacheSupression + "&api_key=" + getApiKey(),
 				headers: {"X-Atmosphere-Transport": "long-polling"},
 				callback: function(request) {
 					if (!_t.paused) {

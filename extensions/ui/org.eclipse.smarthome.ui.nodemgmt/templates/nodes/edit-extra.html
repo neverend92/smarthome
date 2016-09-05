@@ -1,7 +1,28 @@
-<h3>Node Status</h3>
-<p>###REACHABLE###</p>
-<p>###VALIDCREDS###</p>
-<p>###VALIDCONFIG###</p>
+<h3>Node Details</h3>
+<button id="btn-check-node" class="btn btn-info"><i class="glyphicon glyphicon-refresh"></i> update data</button>
+<h4>Node Status</h4>
+<p id="p-info"><span class="text-info">[INFO]&nbsp;&nbsp;loading...</span></p>
 
-<h3>Node Items</h3>
-<p>TODO...</p>
+<h4>Node Items</h4>
+<table class="table table-bordered table-striped table-hover">
+    <thead>
+        <tr>
+            <th>Name</th>
+            <th>Label</th>
+            <th>Category</th>
+            <th>Type</th>
+            <th>&nbsp;</th>
+        </tr>
+    </thead>
+    <tbody id="table-items">
+        <tr>
+            <td colspan="5">
+                <i>Loading items...</i>
+            </td>
+        </tr>
+    </tbody>
+</table>
+
+<h4>Node Sitemap</h4>
+<p id="p-sitemaps"><span class="text-info">[INFO]&nbsp;&nbsp;loading...</span></p>
+<p><i>Not possible to edit sitemap via REST API yet.</i></p>

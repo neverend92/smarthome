@@ -50,7 +50,7 @@ public class AuthResource implements RESTResource {
         UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username, password);
         Authentication auth = AuthenticationProviderImpl.getInstace().authenticate(creds);
         if (auth == null) {
-            return JSONResponse.createResponse(Status.FORBIDDEN, null, "Wrong credentials");
+            return JSONResponse.createResponse(Status.UNAUTHORIZED, null, "Wrong credentials");
         }
 
         return JSONResponse.createResponse(Status.OK, auth, null);

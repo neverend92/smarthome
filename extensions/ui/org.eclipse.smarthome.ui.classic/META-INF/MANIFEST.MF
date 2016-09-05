@@ -8,6 +8,7 @@ Bundle-Activator: org.eclipse.smarthome.ui.classic.internal.WebAppActivator
 Bundle-ManifestVersion: 2
 Bundle-License: http://www.eclipse.org/legal/epl-v10.html
 Import-Package: javax.servlet,
+ javax.servlet.http;version="2.6.0",
  org.apache.commons.io,
  org.apache.commons.lang,
  org.eclipse.emf.common.util,

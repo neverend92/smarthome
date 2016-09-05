@@ -3,6 +3,7 @@ package org.eclipse.smarthome.core.auth;
 import java.io.IOException;
 import java.net.URL;
 
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
@@ -97,6 +98,9 @@ public class AuthenticatedHttpContext implements HttpContext {
             res.sendRedirect("/ui/index.html?api_key=" + auth.getToken());
             return true;
         }
+
+        Cookie tokenCookie = new Cookie("api_key", auth.getToken());
+        res.addCookie(tokenCookie);
 
         // set headers, so that browsers don't try to cache pages.
         res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate"); // HTTP 1.1.

@@ -14,9 +14,9 @@ import java.util.Map;
 import javax.ws.rs.container.ContainerRequestContext;
 import javax.ws.rs.container.ContainerResponseContext;
 import javax.ws.rs.container.ContainerResponseFilter;
+import javax.ws.rs.core.HttpHeaders;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.ext.Provider;
-import javax.ws.rs.core.HttpHeaders;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.smarthome.io.rest.internal.Constants;
@@ -46,7 +46,7 @@ public class CorsFilter implements ContainerResponseFilter {
     private static final String HTTP_POST_METHOD = "POST";
     private static final String HTTP_GET_METHOD = "GET";
     private static final String HTTP_OPTIONS_METHOD = "OPTIONS";
-    
+
     private static final String CONTENT_TYPE_HEADER = HttpHeaders.CONTENT_TYPE;
 
     private static final String ACCESS_CONTROL_REQUEST_METHOD = "Access-Control-Request-Method";
@@ -172,7 +172,7 @@ public class CorsFilter implements ContainerResponseFilter {
             this.isEnabled = "true".equalsIgnoreCase(corsPropertyValue);
         }
 
-        if(this.isEnabled) {
+        if (this.isEnabled) {
             logger.info("enabled CORS for REST API.");
         }
     }

@@ -114,3 +114,9 @@ a:hover {
 .table > tbody > tr > td {
 	vertical-align: middle;
 }
+
+#p-info,
+#p-items,
+#p-sitemaps {
+	font-family: "Lucida Console", Monaco, monospace;
+}
