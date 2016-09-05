@@ -16,6 +16,7 @@ import org.eclipse.smarthome.automation.Condition
 import org.eclipse.smarthome.automation.Rule
 import org.eclipse.smarthome.automation.RuleRegistry
 import org.eclipse.smarthome.automation.RuleStatus
+import org.eclipse.smarthome.automation.RuleStatusInfo
 import org.eclipse.smarthome.automation.Trigger
 import org.eclipse.smarthome.automation.module.timer.handler.TimerTriggerHandler
 import org.eclipse.smarthome.automation.type.ModuleTypeRegistry
@@ -69,6 +70,57 @@ class RuntimeRuleTest extends OSGiTest{
         waitForAssert({
             assertThat mtr.get(TimerTriggerHandler.MODULE_TYPE_ID), is(notNullValue())
         },3000,100)
+    }
+
+    @Test
+    public void 'check disable and enable of timer triggered rule'() {
+        /*
+         * Create Rule
+         */
+        logger.info("Create rule");
+        def testExpression = "* * * * * ?"
+
+        def triggerConfig = new Configuration([cronExpression:testExpression])
+        def triggers = [
+            new Trigger("MyTimerTrigger", "TimerTrigger", triggerConfig)
+        ]
+
+        def rule = new Rule("MyRule"+new Random().nextInt())
+        rule.triggers = triggers
+
+        rule.name = "MyTimerTriggerTestEnableDisableRule"
+        logger.info("Rule created: " + rule.getUID())
+
+        logger.info("Add rule");
+        ruleRegistry.add(rule)
+        logger.info("Rule added");
+
+        def numberOfTests = 1000
+        for (int i=0; i < numberOfTests; ++i) {
+            logger.info("Disable rule");
+            ruleRegistry.setEnabled(rule.UID, false)
+            waitForAssert({
+                final RuleStatusInfo ruleStatus = ruleRegistry.getStatus(rule.UID)
+                println "Rule status (should be DISABLED): " + ruleStatus
+                assertThat ruleStatus.status, is(RuleStatus.DISABLED)
+            })
+            logger.info("Rule is disabled");
+
+            logger.info("Enable rule");
+            ruleRegistry.setEnabled(rule.UID, true)
+            waitForAssert({
+                final RuleStatusInfo ruleStatus = ruleRegistry.getStatus(rule.UID)
+                println "Rule status (should be IDLE or RUNNING): " + ruleStatus
+                boolean allFine
+                if (ruleStatus.status.equals(RuleStatus.IDLE) || ruleStatus.status.equals(RuleStatus.RUNNING)) {
+                    allFine = true
+                } else {
+                    allFine = false
+                }
+                assertThat allFine, is(true)
+            })
+            logger.info("Rule is enabled");
+        }
     }
 
     @Test
@@ -131,8 +183,8 @@ class RuntimeRuleTest extends OSGiTest{
         logger.info("Enable rule and wait for idle status")
         ruleRegistry.setEnabled(rule.UID, true)
         waitForAssert({
-            println ruleRegistry.getStatus(rule.UID).statusDetail
-            assertThat ruleRegistry.getStatus(rule.UID).status, is(RuleStatus.IDLE)
+            final RuleStatusInfo ruleStatus = ruleRegistry.getStatus(rule.UID)
+            assertThat ruleStatus.status, is(RuleStatus.IDLE)
         })
         logger.info("Rule is enabled and idle")
 
@@ -141,8 +193,8 @@ class RuntimeRuleTest extends OSGiTest{
             logger.info("Disable rule");
             ruleRegistry.setEnabled(rule.UID, false)
             waitForAssert({
-                println ruleRegistry.getStatus(rule.UID).statusDetail
-                assertThat ruleRegistry.getStatus(rule.UID).status, is(RuleStatus.DISABLED)
+                final RuleStatusInfo ruleStatus = ruleRegistry.getStatus(rule.UID)
+                assertThat ruleStatus.status, is(RuleStatus.DISABLED)
             })
             logger.info("Rule is disabled");
 
