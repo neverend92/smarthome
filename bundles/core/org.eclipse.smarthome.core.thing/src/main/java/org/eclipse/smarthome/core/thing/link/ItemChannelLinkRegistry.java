@@ -9,12 +9,15 @@ package org.eclipse.smarthome.core.thing.link;
 
 import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.eclipse.smarthome.core.items.ItemRegistry;
 import org.eclipse.smarthome.core.thing.ChannelUID;
 import org.eclipse.smarthome.core.thing.Thing;
 import org.eclipse.smarthome.core.thing.ThingRegistry;
 import org.eclipse.smarthome.core.thing.ThingUID;
+import org.eclipse.smarthome.core.thing.UID;
 import org.eclipse.smarthome.core.thing.link.events.LinkEventFactory;
 
 /**
@@ -22,11 +25,17 @@ import org.eclipse.smarthome.core.thing.link.events.LinkEventFactory;
  * and aggregates all {@link ItemChannelLink}s.
  *
  * @author Dennis Nobel - Initial contribution
+ * @author Markus Rathgeb - Linked items returns only existing items
  *
  */
-public class ItemChannelLinkRegistry extends AbstractLinkRegistry<ItemChannelLink> {
+public class ItemChannelLinkRegistry extends AbstractLinkRegistry<ItemChannelLink, ItemChannelLinkProvider> {
 
     private ThingRegistry thingRegistry;
+    private ItemRegistry itemRegistry;
+
+    public ItemChannelLinkRegistry() {
+        super(ItemChannelLinkProvider.class);
+    }
 
     /**
      * Returns a set of bound channels for the given item name.
@@ -54,6 +63,18 @@ public class ItemChannelLinkRegistry extends AbstractLinkRegistry<ItemChannelLin
     @Override
     public ItemChannelLink update(ItemChannelLink element) {
         throw new UnsupportedOperationException("Channels can not be updated.");
+    }
+
+    @Override
+    public Set<String> getLinkedItems(UID uid) {
+        final Set<String> linkedItems = new LinkedHashSet<>();
+        for (final AbstractLink link : getAll()) {
+            final String itemName = link.getItemName();
+            if (link.getUID().equals(uid) && itemRegistry.get(itemName) != null) {
+                linkedItems.add(itemName);
+            }
+        }
+        return linkedItems;
     }
 
     /**
@@ -89,6 +110,14 @@ public class ItemChannelLinkRegistry extends AbstractLinkRegistry<ItemChannelLin
         this.thingRegistry = null;
     }
 
+    protected void setItemRegistry(final ItemRegistry itemRegistry) {
+        this.itemRegistry = itemRegistry;
+    }
+
+    protected void unsetItemRegistry(final ItemRegistry itemRegistry) {
+        this.itemRegistry = null;
+    }
+
     public void removeLinksForThing(ThingUID thingUID) {
         if (this.managedProvider != null) {
             ((ManagedItemChannelLinkProvider) this.managedProvider).removeLinksForThing(thingUID);
@@ -114,4 +143,5 @@ public class ItemChannelLinkRegistry extends AbstractLinkRegistry<ItemChannelLin
         super.notifyListenersAboutUpdatedElement(oldElement, element);
         // it is not needed to send an event, because links can not be updated
     }
+
 }

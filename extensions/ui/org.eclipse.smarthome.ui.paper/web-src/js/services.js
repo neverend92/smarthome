@@ -34,7 +34,8 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
             var data = JSON.parse(event.data);
             $log.debug('Event received: ' + data.topic + ' - ' + data.payload);
             $.each(callbacks, function(index, element) {
-                if (data.topic.match(element.topic)) {
+                var match = data.topic.match(element.topic);
+                if (match != null && match == data.topic) {
                     element.callback(data.topic, JSON.parse(data.payload));
                 }
             });
@@ -124,15 +125,23 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                     if (parameter.context.toUpperCase() === 'ITEM') {
                         parameter.element = 'select';
                     } else if (parameter.context.toUpperCase() === 'DATE') {
-                        parameter.element = 'date';
+                        if (parameter.type.toUpperCase() === 'TEXT') {
+                            parameter.element = 'date';
+                        } else {
+                            parameter.element = 'input';
+                            parameter.context = "";
+                        }
                     } else if (parameter.context.toUpperCase() === 'THING') {
                         parameter.element = 'select';
                         thingList = thingList === undefined ? thingService.getAll() : thingList;
                         parameter.options = thingList;
                     } else if (parameter.context.toUpperCase() === 'TIME') {
                         parameter.element = 'input';
-                        parameter.input = "TEXT";
-                        parameter.inputType = parameter.context;
+                        if (parameter.type.toUpperCase() === 'TEXT') {
+                            parameter.inputType = parameter.context;
+                        } else {
+                            parameter.context = "";
+                        }
                     } else if (parameter.context.toUpperCase() === 'COLOR') {
                         parameter.element = 'color';
                         parameter.input = "TEXT";
@@ -182,10 +191,24 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                 groupsList[indexArray[group[0].name]].groupLabel = group[0].label;
                 groupsList[indexArray[group[0].name]].parameters.push(parameter);
             }
+            parameters.hasAdvanced = false;
             for (var j = 0; j < groupsList.length; j++) {
                 if (groupsList[j].groupName) {
+                    var advanced = $.grep(groupsList[j].parameters, function(parameter) {
+                        return parameter.advanced;
+                    });
+                    if (advanced.length == groupsList[j].parameters.length) {
+                        groupsList[j].hasNonAdvanced = false;
+                    } else {
+                        groupsList[j].hasNonAdvanced = true;
+                    }
+                    if (advanced.length > 0) {
+                        parameters.hasAdvanced = true;
+                    }
+
                     parameters.push(groupsList[j]);
                 }
+
             }
             return this.getItemConfigs(parameters);
         },
