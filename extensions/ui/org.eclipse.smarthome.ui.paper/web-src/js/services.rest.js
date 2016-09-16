@@ -34,7 +34,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
         getAll : {
             method : 'GET',
             isArray : true,
-            url : restConfig.restPath + '/items?api_key=' + restConfig.apiKey + '&recursive=true'
+            url : restConfig.restPath + '/items?api_key=' + restConfig.apiKey + '&recursive=false'
         },
         getByName : {
             method : 'GET',
@@ -108,12 +108,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 tag : '@tag'
             },
             url : restConfig.restPath + '/items/:itemName/tags/:tag?api_key=' + restConfig.apiKey
-        },
-        getNonRecursiveAll : {
-            method : 'GET',
-            isArray : true,
-            url : restConfig.restPath + '/items?api_key=' + restConfig.apiKey + '&recursive=false'
-        },
+        }
     });
 }).factory('bindingService', function($resource, restConfig) {
     return $resource(restConfig.restPath + '/bindings', {}, {

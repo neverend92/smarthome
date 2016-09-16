@@ -194,18 +194,12 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
             parameters.hasAdvanced = false;
             for (var j = 0; j < groupsList.length; j++) {
                 if (groupsList[j].groupName) {
-                    var advanced = $.grep(groupsList[j].parameters, function(parameter) {
+                    groupsList[j].advParam = $.grep(groupsList[j].parameters, function(parameter) {
                         return parameter.advanced;
-                    });
-                    if (advanced.length == groupsList[j].parameters.length) {
-                        groupsList[j].hasNonAdvanced = false;
-                    } else {
-                        groupsList[j].hasNonAdvanced = true;
-                    }
-                    if (advanced.length > 0) {
+                    }).length;
+                    if (groupsList[j].advParam > 0) {
                         parameters.hasAdvanced = true;
                     }
-
                     parameters.push(groupsList[j]);
                 }
 
@@ -300,7 +294,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                     } else if (param.context.toUpperCase() === 'DATE') {
                         var dateParts = configEntry.value ? configEntry.value.split(/[\s\/,.:-]+/) : [];
                         if (dateParts.length > 2) {
-                            configEntry.value = new Date(dateParts[1] + '.' + dateParts[2] + '.' + dateParts[0]);
+                            configEntry.value = new Date(dateParts[1] + '/' + dateParts[2] + '/' + dateParts[0]);
                         } else {
                             configEntry.value = null;
                         }
@@ -366,7 +360,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                                 } else {
                                     var dateParts = date.split(/[\s\/,.:-]+/);
                                     if (dateParts.length > 2) {
-                                        configuration[parameter.name] = new Date(dateParts[1] + '-' + dateParts[2] + '-' + dateParts[0]);
+                                        configuration[parameter.name] = new Date(dateParts[1] + '/' + dateParts[2] + '/' + dateParts[0]);
                                     } else {
                                         configuration[parameter.name] = null;
                                     }
