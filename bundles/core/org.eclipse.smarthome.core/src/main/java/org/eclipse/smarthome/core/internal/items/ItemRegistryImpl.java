@@ -156,7 +156,7 @@ public class ItemRegistryImpl extends AbstractRegistry<Item, String, ItemProvide
     public Item get(final String itemName) {
         for (final Map.Entry<Provider<Item>, Collection<Item>> entry : elementMap.entrySet()) {
             for (final Item item : entry.getValue()) {
-                if (itemName.equals(item.getName())) {
+                if (item.getName().equals(itemName)) {
                     return item;
                 }
             }
