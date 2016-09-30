@@ -209,7 +209,7 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
         getByUid : {
             method : 'GET',
             params : {
-                bindingId : '@thingTypeUID'
+                thingTypeUID : '@thingTypeUID'
             },
             url : restConfig.restPath + '/thing-types/:thingTypeUID?api_key=' + restConfig.apiKey
         }
