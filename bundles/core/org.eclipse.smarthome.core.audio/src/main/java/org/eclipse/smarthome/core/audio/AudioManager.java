@@ -124,13 +124,12 @@ public class AudioManager {
     /**
      * Stream audio from the passed url to the given sink
      *
-     * @param url The url to stream from
+     * @param url The url to stream from or null if streaming should be stopped
      * @param sinkId The id of the audio sink to use or null
      * @throws AudioException in case the url stream cannot be opened
      */
     public void stream(String url, String sinkId) throws AudioException {
-        AudioStream audioStream = new URLAudioStream(url);
-
+        AudioStream audioStream = url != null ? new URLAudioStream(url) : null;
         AudioSink sink = getSink(sinkId);
 
         if (sink != null) {
@@ -166,10 +165,10 @@ public class AudioManager {
     /**
      * Sets the volume for a sink.
      *
-     * @param sinkId the sink to set the volume
      * @param volume the volume to set as a value between 0 and 1
+     * @param sinkId the sink to set the volume
      */
-    public void setVolume(String sinkId, float volume) {
+    public void setVolume(float volume, String sinkId) {
         AudioSink sink = getSink(sinkId);
 
         if (sink != null) {

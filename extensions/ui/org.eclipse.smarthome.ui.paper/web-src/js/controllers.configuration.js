@@ -128,7 +128,6 @@ angular.module('PaperUI.controllers.configuration', [ 'PaperUI.constants' ]).con
             $scope.configuration = configService.getConfigAsObject($scope.configArray, $scope.parameters);
         }
         var configuration = configService.setConfigDefaults($scope.configuration, $scope.parameters, true);
-        configuration = configService.replaceEmptyValues(configuration);
         bindingService.updateConfig({
             id : bindingId
         }, configuration, function() {
@@ -682,7 +681,9 @@ angular.module('PaperUI.controllers.configuration', [ 'PaperUI.constants' ]).con
         }, refresh);
     }
     $scope.$watch('configuration', function() {
-        $scope.thing.configuration = $scope.configuration;
+        if ($scope.configuration) {
+            $scope.thing.configuration = $scope.configuration;
+        }
     });
     $scope.getThing(false);
 }).controller('ChannelConfigController', function($scope, $mdDialog, toastService, thingRepository, thingService, configService, channelType, channelUID, thing) {

@@ -41,7 +41,9 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
             });
         });
     }
-    initializeEventService();
+    if (typeof (EventSource) !== "undefined") {
+        initializeEventService();
+    }
 
     return new function() {
         this.onEvent = function(topic, callback) {
@@ -371,7 +373,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                     } else if (!hasValue && parameter.context && (parameter.context.toUpperCase() === 'COLOR' && !sending)) {
                         // configuration[parameter.name] = "#ffffff";
                     } else if (!hasValue && parameter.type === 'TEXT') {
-                        configuration[parameter.name] = parameter.defaultValue
+                        configuration[parameter.name] = parameter.defaultValue;
                     } else if (parameter.type === 'BOOLEAN') {
                         var value = hasValue ? configuration[parameter.name] : parameter.defaultValue;
                         if (String(value).length > 0) {
@@ -384,7 +386,7 @@ angular.module('PaperUI.services', [ 'PaperUI.constants' ]).config(function($htt
                     }
                 });
             }
-            return configuration;
+            return this.replaceEmptyValues(configuration);
         },
         convertValues : function(configurations, parameters) {
             angular.forEach(configurations, function(value, name) {
