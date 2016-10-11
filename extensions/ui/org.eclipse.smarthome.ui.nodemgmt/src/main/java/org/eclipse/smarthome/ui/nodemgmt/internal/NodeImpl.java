@@ -20,6 +20,8 @@ public class NodeImpl implements Node {
      */
     private String credentials;
 
+    private String[] extensions;
+
     /*
      * (non-Javadoc)
      *
@@ -170,6 +172,26 @@ public class NodeImpl implements Node {
     @Override
     public void setIP(String ip) {
         this.ip = ip;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.smarthome.ui.nodemgmt.Node#getExtensions()
+     */
+    @Override
+    public String[] getExtensions() {
+        return this.extensions;
+    }
+
+    /*
+     * (non-Javadoc)
+     * 
+     * @see org.eclipse.smarthome.ui.nodemgmt.Node#setExtensions(java.lang.String[])
+     */
+    @Override
+    public void setExtensions(String[] extensions) {
+        this.extensions = extensions;
     }
 
 }

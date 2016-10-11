@@ -16,4 +16,8 @@ public interface Node extends DTO {
 
     public void setCredentials(String credentials);
 
+    public String[] getExtensions();
+
+    public void setExtensions(String[] extensions);
+
 }

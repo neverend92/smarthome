@@ -22,14 +22,23 @@ public class NodeMgmtServlet extends MgmtServlet {
         String[] validActionGet = { "index", "edit", "add" };
         this.setValidActionGet(validActionGet);
 
-        String[] validActionPost = { "add", "edit", "delete" };
+        String[] validActionPost = { "add", "edit", "delete", "installExtension", "deleteExtension" };
         this.setValidActionPost(validActionPost);
 
         HashMap<String, String> customRedirects = new HashMap<String, String>();
+        customRedirects.put("installExtensionError",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("deleteExtensionError",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+
         customRedirects.put("_defaultError",
                 baseUrl + "?controller=###URL_CONTROLLER###&action=###URL_ACTION###&id=###URL_ID###");
         customRedirects.put("addSuccess", baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
         customRedirects.put("editSuccess", baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("installExtensionSuccess",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("deleteExtensionSuccess",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
         customRedirects.put("_defaultSuccess", baseUrl + "?controller=###URL_CONTROLLER###");
         this.setCustomRedirects(customRedirects);
 

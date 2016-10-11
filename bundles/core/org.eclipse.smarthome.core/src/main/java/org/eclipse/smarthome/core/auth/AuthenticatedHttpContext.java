@@ -73,7 +73,11 @@ public class AuthenticatedHttpContext implements HttpContext {
         if (auth == null) {
             // no valid authentication
             // redirect to login page.
-            session.setAttribute("last_uri", reqUrl);
+            String lastUri = reqUrl;
+            if (reqQuery != null) {
+                lastUri += "?" + reqQuery;
+            }
+            session.setAttribute("last_uri", lastUri);
             res.sendRedirect("/auth/login");
             return false;
         }
