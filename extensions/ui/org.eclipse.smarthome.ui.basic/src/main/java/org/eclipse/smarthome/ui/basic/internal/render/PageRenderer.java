@@ -172,7 +172,6 @@ public class PageRenderer extends AbstractWidgetRenderer {
         if (itemUIRegistry.getVisiblity(w, this.auth) == false) {
             return null;
         }
-
         for (WidgetRenderer renderer : widgetRenderers) {
             if (renderer.canRender(w)) {
                 return renderer.renderWidget(w, sb);

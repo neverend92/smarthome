@@ -271,6 +271,42 @@
 		};
 	}
 
+	function VisibilityChangeProxy(delay, maxEvents) {
+		var
+			_t = this;
+
+		function processEvent(event) {
+			event.widget.setVisible(event.visibility);
+		}
+
+		_t.queue = [];
+		_t.timeout = null;
+
+		_t.processEvents = function() {
+			_t.timeout = null;
+
+			while (_t.queue.length !== 0) {
+				processEvent(_t.queue[0]);
+				_t.queue = _t.queue.slice(1);
+			}
+		};
+
+		_t.push = function(event) {
+			if (_t.queue.length > maxEvents) {
+				return;
+			}
+
+			_t.queue.push(event);
+
+			if (_t.timeout === null) {
+				_t.timeout = setTimeout(_t.processEvents, delay);
+			} else {
+				clearTimeout(_t.timeout);
+				_t.timeout = setTimeout(_t.processEvents, delay);
+			}
+		};
+	}
+
 	/* class Control */
 	function Control(parentNode) {
 		var
@@ -278,16 +314,18 @@
 			suppress = false;
 
 		_t.parentNode = parentNode;
+		_t.formRow = parentNode.parentNode;
 		_t.item = _t.parentNode.getAttribute(o.itemAttribute);
 		_t.id = _t.parentNode.getAttribute(o.idAttribute);
 		_t.icon = _t.parentNode.parentNode.querySelector(o.formIcon);
+		_t.visible = !_t.formRow.classList.contains(o.formRowHidden);
 
 		if (_t.icon !== null) {
 			_t.iconName = _t.icon.getAttribute(o.iconAttribute);
 		}
 
 		_t.reloadIcon = function(state) {
-			// This condition should be always true, but who knows?
+			// Some widgets don't have icons
 			if (_t.icon !== null) {
 				_t.icon.setAttribute("src",
 					"/icon/" +
@@ -298,6 +336,16 @@
 					smarthome.UI.iconType
 				);
 			}
+		};
+
+		_t.setVisible = function(state) {
+			if (state) {
+				_t.formRow.classList.remove(o.formRowHidden);
+			} else {
+				_t.formRow.classList.add(o.formRowHidden);
+			}
+
+			_t.visible = state;
 		};
 
 		_t.setValue = function(value, itemState) {
@@ -317,7 +365,13 @@
 	}
 
 	/* class ControlImage */
-	function ControlImage(parentNode) {
+	function ControlImage(parentNode, callSuper) {
+		// Some controls combile Image functionality with
+		// other classes, so calling Control is conditional
+		if (callSuper) {
+			Control.call(this, parentNode);
+		}
+
 		var
 			_t = this;
 
@@ -347,7 +401,7 @@
 		var
 			_t = this;
 
-		_t.setValue = function(value) {
+		_t.setValuePrivate = function(value) {
 			parentNode.innerHTML = value;
 		};
 	}
@@ -1188,7 +1242,7 @@
 		});
 	}
 
-		function UI(root) {
+	function UI(root) {
 		/* const */
 		var
 			NavigationState = {
@@ -1375,10 +1429,10 @@
 					break;
 				case "chart":
 				case "image":
-					new ControlImage(e);
+					appendControl(new ControlImage(e, true));
 					break;
 				case "image-link":
-					new ControlImage(e);
+					appendControl(new ControlImage(e, false));
 				case "text-link":
 				case "group":
 					appendControl(new ControlLink(e));
@@ -1388,6 +1442,11 @@
 					break;
 				case "colorpicker":
 					appendControl(new ControlColorpicker(e));
+					break;
+				case "video":
+				case "webview":
+				case "mapview":
+					appendControl(new Control(e));
 					break;
 				default:
 					break;
@@ -1472,7 +1531,17 @@
 			}
 
 			if (smarthome.dataModel[data.widgetId] !== undefined) {
-				smarthome.dataModel[data.widgetId].setValue(value, data.item.state);
+				var
+					widget = smarthome.dataModel[data.widgetId];
+
+				if (widget.visible !== data.visibility) {
+					smarthome.UI.layoutChangeProxy.push({
+						widget: widget,
+						visibility: data.visibility
+					});
+				} else {
+					widget.setValue(value, data.item.state);
+				}
 			}
 		});
 	}
@@ -1618,6 +1687,7 @@
 
 	document.addEventListener("DOMContentLoaded", function() {
 		smarthome.UI = new UI(document);
+		smarthome.UI.layoutChangeProxy = new VisibilityChangeProxy(100, 50);
 		smarthome.UI.initControls();
 		smarthome.changeListener = new ChangeListener();
 	});
@@ -1632,6 +1702,7 @@
 	modalContainer: ".mdl-modal__content",
 	selectionRows: ".mdl-form__selection-rows",
 	formControls: ".mdl-form__control",
+	formRowHidden: "mdl-form__row--hidden",
 	formValue: ".mdl-form__value",
 	formRadio: ".mdl-radio",
 	formRadioControl: ".mdl-radio__button",
