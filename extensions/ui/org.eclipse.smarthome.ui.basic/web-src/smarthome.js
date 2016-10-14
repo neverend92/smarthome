@@ -413,6 +413,7 @@
 		var
 			_t = this;
 
+		_t.value = _t.parentNode.querySelector(o.formValue);
 		_t.count = _t.parentNode.getAttribute("data-count") * 1;
 		_t.reset = function() {
 			_t.buttons.forEach(function(button) {
@@ -440,6 +441,10 @@
 		_t.valueMap = {};
 		_t.buttons = [].slice.call(_t.parentNode.querySelectorAll(o.controlButton));
 		_t.setValuePrivate = function(value) {
+			if (_t.value !== null) {
+				_t.value.innerHTML = value;
+			}
+
 			if (_t.count === 1) {
 				return;
 			}
@@ -1264,7 +1269,7 @@
 		_t.iconType = document.body.getAttribute(o.iconTypeAttribute);
 
 		function setTitle(title) {
-			document.title = title;
+			document.querySelector("title").innerHTML = title;
 			_t.layoutTitle.innerHTML = title;
 		}
 
