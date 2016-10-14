@@ -154,6 +154,7 @@ public class ItemRegistryImpl extends AbstractRegistry<Item, String, ItemProvide
 
     @Override
     public Item get(final String itemName) {
+        /** @TODO */
         for (final Map.Entry<Provider<Item>, Collection<Item>> entry : elementMap.entrySet()) {
             for (final Item item : entry.getValue()) {
                 if (item.getName().equals(itemName)) {
@@ -454,6 +455,9 @@ public class ItemRegistryImpl extends AbstractRegistry<Item, String, ItemProvide
      */
     @Override
     public boolean isItemAllowed(Item item, Authentication auth) {
+        if (auth == null) {
+            return false;
+        }
         // check if current user is allowed to see the item.
         ArrayList<String> allowedItems = new ArrayList<String>();
         for (String role : auth.getRoles()) {

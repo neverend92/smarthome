@@ -34,7 +34,9 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.events.EventPublisher;
+import org.eclipse.smarthome.core.internal.auth.AuthenticationProviderImpl;
 import org.eclipse.smarthome.core.items.ActiveItem;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.GroupItem;
@@ -143,11 +145,14 @@ public class ItemResource implements RESTResource {
     public Response getItems(@HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "language") String language,
             @QueryParam("type") @ApiParam(value = "item type filter", required = false) String type,
             @QueryParam("tags") @ApiParam(value = "item tag filter", required = false) String tags,
-            @DefaultValue("false") @QueryParam("recursive") @ApiParam(value = "get member items recursivly", required = false) boolean recursive) {
+            @DefaultValue("false") @QueryParam("recursive") @ApiParam(value = "get member items recursivly", required = false) boolean recursive,
+            @DefaultValue("") @QueryParam("api_key") @ApiParam(value = "security token", required = false) String apiKey) {
         final Locale locale = LocaleUtil.getLocale(language);
         logger.debug("Received HTTP GET request at '{}'", uriInfo.getPath());
 
-        Object responseObject = getItemBeans(type, tags, recursive, locale);
+        Authentication auth = AuthenticationProviderImpl.getInstace().authenticateToken(apiKey);
+
+        Object responseObject = getItemBeans(type, tags, recursive, locale, auth);
         return Response.ok(responseObject).build();
     }
 
@@ -158,7 +163,8 @@ public class ItemResource implements RESTResource {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Item not found") })
     public Response getItemData(@HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "language") String language,
-            @PathParam("itemname") @ApiParam(value = "item name", required = true) String itemname) {
+            @PathParam("itemname") @ApiParam(value = "item name", required = true) String itemname,
+            @DefaultValue("") @QueryParam("api_key") @ApiParam(value = "security token", required = false) String apiKey) {
         final Locale locale = LocaleUtil.getLocale(language);
         logger.debug("Received HTTP GET request at '{}'", uriInfo.getPath());
 
@@ -167,8 +173,13 @@ public class ItemResource implements RESTResource {
 
         // if it exists
         if (item != null) {
+            Authentication auth = AuthenticationProviderImpl.getInstace().authenticateToken(apiKey);
+            if (!itemRegistry.isItemAllowed(item, auth)) {
+                return JSONResponse.createErrorResponse(Status.FORBIDDEN, "Not allowed to access item.");
+            }
             logger.debug("Received HTTP GET request at '{}'.", uriInfo.getPath());
             return getItemResponse(Status.OK, item, locale, null);
+
         } else {
             logger.info("Received HTTP GET request at '{}' for the unknown item '{}'.", uriInfo.getPath(), itemname);
             return getItemNotFoundResponse(itemname);
@@ -187,13 +198,18 @@ public class ItemResource implements RESTResource {
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
             @ApiResponse(code = 404, message = "Item not found") })
     public Response getPlainItemState(
-            @PathParam("itemname") @ApiParam(value = "item name", required = true) String itemname) {
+            @PathParam("itemname") @ApiParam(value = "item name", required = true) String itemname,
+            @DefaultValue("") @QueryParam("api_key") @ApiParam(value = "security token", required = false) String apiKey) {
 
         // get item
         Item item = getItem(itemname);
 
         // if it exists
         if (item != null) {
+            Authentication auth = AuthenticationProviderImpl.getInstace().authenticateToken(apiKey);
+            if (!itemRegistry.isItemAllowed(item, auth)) {
+                return JSONResponse.createErrorResponse(Status.FORBIDDEN, "Not allowed to access item state.");
+            }
             logger.debug("Received HTTP GET request at '{}'.", uriInfo.getPath());
 
             // we cannot use JSONResponse.createResponse() bc. MediaType.TEXT_PLAIN
@@ -215,7 +231,8 @@ public class ItemResource implements RESTResource {
     public Response putItemState(
             @HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "language") String language,
             @PathParam("itemname") @ApiParam(value = "item name", required = true) String itemname,
-            @ApiParam(value = "valid item state (e.g. ON, OFF)", required = true) String value) {
+            @ApiParam(value = "valid item state (e.g. ON, OFF)", required = true) String value,
+            @DefaultValue("") @QueryParam("api_key") @ApiParam(value = "security token", required = false) String apiKey) {
         final Locale locale = LocaleUtil.getLocale(language);
 
         // get Item
@@ -223,7 +240,10 @@ public class ItemResource implements RESTResource {
 
         // if Item exists
         if (item != null) {
-
+            Authentication auth = AuthenticationProviderImpl.getInstace().authenticateToken(apiKey);
+            if (!itemRegistry.isItemAllowed(item, auth)) {
+                return JSONResponse.createErrorResponse(Status.FORBIDDEN, "Not allowed to change item state.");
+            }
             // try to parse a State from the input
             State state = TypeParser.parseState(item.getAcceptedDataTypes(), value);
 
@@ -257,10 +277,15 @@ public class ItemResource implements RESTResource {
             @ApiResponse(code = 400, message = "Item command null") })
     public Response postItemCommand(
             @PathParam("itemname") @ApiParam(value = "item name", required = true) String itemname,
-            @ApiParam(value = "valid item command (e.g. ON, OFF, UP, DOWN, REFRESH)", required = true) String value) {
+            @ApiParam(value = "valid item command (e.g. ON, OFF, UP, DOWN, REFRESH)", required = true) String value,
+            @DefaultValue("") @QueryParam("api_key") @ApiParam(value = "security token", required = false) String apiKey) {
         Item item = getItem(itemname);
         Command command = null;
         if (item != null) {
+            Authentication auth = AuthenticationProviderImpl.getInstace().authenticateToken(apiKey);
+            if (!itemRegistry.isItemAllowed(item, auth)) {
+                return JSONResponse.createErrorResponse(Status.FORBIDDEN, "Not allowed to change item.");
+            }
             if ("toggle".equalsIgnoreCase(value) && (item instanceof SwitchItem || item instanceof RollershutterItem)) {
                 if (OnOffType.ON.equals(item.getStateAs(OnOffType.class))) {
                     command = OnOffType.OFF;
@@ -535,7 +560,8 @@ public class ItemResource implements RESTResource {
         return item;
     }
 
-    private List<EnrichedItemDTO> getItemBeans(String type, String tags, boolean recursive, Locale locale) {
+    private List<EnrichedItemDTO> getItemBeans(String type, String tags, boolean recursive, Locale locale,
+            Authentication auth) {
         List<EnrichedItemDTO> beans = new LinkedList<>();
         Collection<Item> items;
         if (tags == null) {
@@ -554,8 +580,10 @@ public class ItemResource implements RESTResource {
         }
         if (items != null) {
             for (Item item : items) {
-                /** TODO filter items depending on api token. */
-                beans.add(EnrichedItemDTOMapper.map(item, recursive, uriInfo.getBaseUri(), locale));
+                // only add items which the user should see.
+                if (itemRegistry.isItemAllowed(item, auth)) {
+                    beans.add(EnrichedItemDTOMapper.map(item, recursive, uriInfo.getBaseUri(), locale));
+                }
             }
         }
         return beans;

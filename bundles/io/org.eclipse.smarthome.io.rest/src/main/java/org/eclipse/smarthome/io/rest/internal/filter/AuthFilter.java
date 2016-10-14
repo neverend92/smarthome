@@ -37,6 +37,8 @@ public class AuthFilter implements ContainerRequestFilter {
     public void filter(ContainerRequestContext ctx) throws IOException {
         UriInfo uriInfo = ctx.getUriInfo();
 
+        String requestMethod = ctx.getRequest().getMethod();
+
         // check if request should be protected.
         String path = uriInfo.getPath();
         if (pathUnauthorized.contains(path)) {
@@ -51,7 +53,19 @@ public class AuthFilter implements ContainerRequestFilter {
             String apiKey = queryParameters.getFirst("api_key");
             AuthenticationProvider authProvider = AuthenticationProviderImpl.getInstace();
             Authentication auth = authProvider.authenticateToken(apiKey);
-            if (authProvider.isAllowed(auth, "/rest/")) {
+
+            // build requested url.
+            String reqUrl = requestMethod + " /rest/" + path;
+            // special case for updating item state.
+            String specialReqUrl = "PUT /rest/items/.*/state";
+            String queryString = specialReqUrl;
+            logger.debug("### queryString: {}", queryString);
+            if (reqUrl.matches(queryString)) {
+                reqUrl = specialReqUrl;
+            }
+            logger.debug("### rest path: {}", reqUrl);
+
+            if (authProvider.isAllowed(auth, "/rest") || authProvider.isAllowed(auth, reqUrl)) {
                 return;
             }
             ctx.abortWith(Response.status(Response.Status.FORBIDDEN)
