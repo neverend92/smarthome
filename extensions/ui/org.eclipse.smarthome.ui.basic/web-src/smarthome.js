@@ -1679,7 +1679,7 @@
 		};
 
 		ajax({
-			url: "/rest/sitemaps/events/subscribe",
+			url: "/rest/sitemaps/events/subscribe?api_key=" + getApiKey(),
 			type: "POST",
 			callback: _t.startSubscriber
 		});
