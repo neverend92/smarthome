@@ -11,6 +11,7 @@ Import-Package: com.google.common.base,
  javax.ws.rs,
  javax.ws.rs.core,
  org.apache.commons.httpclient;version="3.1.0",
+ org.apache.commons.io;version="2.2.0",
  org.eclipse.smarthome.config.core,
  org.eclipse.smarthome.config.core.dto,
  org.eclipse.smarthome.config.core.status,
@@ -48,7 +49,8 @@ Import-Package: com.google.common.base,
  org.osgi.service.cm,
  org.osgi.service.component,
  org.slf4j
-Export-Package: org.eclipse.smarthome.io.rest.core.item,
+Export-Package: org.eclipse.smarthome.io.rest.core.compat1x.config,
+ org.eclipse.smarthome.io.rest.core.item,
  org.eclipse.smarthome.io.rest.core.thing
 Service-Component: OSGI-INF/*.xml
 Bundle-Activator: org.eclipse.smarthome.io.rest.core.internal.RESTCoreActivator

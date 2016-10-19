@@ -22,13 +22,22 @@ public class NodeMgmtServlet extends MgmtServlet {
         String[] validActionGet = { "index", "edit", "add" };
         this.setValidActionGet(validActionGet);
 
-        String[] validActionPost = { "add", "edit", "delete", "installExtension", "deleteExtension" };
+        String[] validActionPost = { "add", "edit", "delete", "installExtension", "deleteExtension", "updateConfig",
+                "discoverItem", "createNodeItem", "createShadowItem" };
         this.setValidActionPost(validActionPost);
 
         HashMap<String, String> customRedirects = new HashMap<String, String>();
         customRedirects.put("installExtensionError",
                 baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
         customRedirects.put("deleteExtensionError",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("updateConfigError",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("discoverItemError",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("createNodeItemError",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("createShadowItemError",
                 baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
 
         customRedirects.put("_defaultError",
@@ -38,6 +47,14 @@ public class NodeMgmtServlet extends MgmtServlet {
         customRedirects.put("installExtensionSuccess",
                 baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
         customRedirects.put("deleteExtensionSuccess",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("updateConfigSuccess",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("discoverItemSuccess",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("createNodeItemSuccess",
+                baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
+        customRedirects.put("createShadowItemSuccess",
                 baseUrl + "?controller=###URL_CONTROLLER###&action=edit&id=###URL_ID###");
         customRedirects.put("_defaultSuccess", baseUrl + "?controller=###URL_CONTROLLER###");
         this.setCustomRedirects(customRedirects);

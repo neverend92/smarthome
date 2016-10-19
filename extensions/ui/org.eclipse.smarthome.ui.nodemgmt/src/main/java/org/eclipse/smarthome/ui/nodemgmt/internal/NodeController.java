@@ -6,11 +6,25 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.net.HttpURLConnection;
 import java.net.URL;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
+import java.security.SecureRandom;
+import java.security.cert.CertificateException;
+import java.security.cert.X509Certificate;
 import java.util.Arrays;
 
+import javax.net.ssl.HostnameVerifier;
+import javax.net.ssl.HttpsURLConnection;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import javax.servlet.http.HttpServletRequest;
 
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.eclipse.smarthome.io.rest.core.compat1x.config.Compat1xAleonceanConfigDTO;
+import org.eclipse.smarthome.io.rest.core.compat1x.config.Compat1xMqttConfigDTO;
+import org.eclipse.smarthome.io.rest.core.compat1x.config.Compat1xMqttEventbusConfigDTO;
 import org.eclipse.smarthome.ui.mgmt.internal.MgmtController;
 import org.eclipse.smarthome.ui.mgmt.internal.MgmtServlet;
 import org.eclipse.smarthome.ui.nodemgmt.Node;
@@ -43,6 +57,7 @@ public class NodeController extends MgmtController<Node> {
         this.setFieldName("ip");
 
         this.getAttributes().add("ip");
+        this.getAttributes().add("name");
         this.getAttributes().add("description");
         this.getAttributes().add("credentials");
     }
@@ -55,7 +70,7 @@ public class NodeController extends MgmtController<Node> {
      * @return String statuslines.
      * @throws IOException
      */
-    private String doAuthCheck(Node node) throws IOException {
+    private String doAuthCheck(Node node) {
         // build url.
         String url = node.getIP() + "/rest/auth";
 
@@ -75,7 +90,7 @@ public class NodeController extends MgmtController<Node> {
      * @return String statuslines.
      * @throws IOException
      */
-    private String doCheckExtension(Node node, String extensionId) throws IOException {
+    private String doCheckExtension(Node node, String extensionId) {
         // build url.
         String url = node.getIP() + "/rest/extensions/" + extensionId + "?api_key=" + this.apiKey;
 
@@ -91,20 +106,18 @@ public class NodeController extends MgmtController<Node> {
      * @param extensions
      */
     private void doCheckExtensions(Node node, String[] extensions) {
+        if (extensions == null) {
+            return;
+        }
         Gson gson = new Gson();
 
         for (String extensionId : extensions) {
             // doCheckExtension
             String ret = "";
-            try {
-                ret = this.doCheckExtension(node, extensionId);
-            } catch (IOException e) {
-                this.nodeStatus += this.getConsoleStatusLine("error", "could not check extension " + extensionId);
-                continue;
-            }
+            ret = this.doCheckExtension(node, extensionId);
             if (ret == null) {
                 this.nodeStatus += this.getConsoleStatusLine("error", "could not check extension " + extensionId);
-                this.nodeExtensions += this.getExtensionInstallForm(false, extensionId, "no", "", node.getId());
+                this.nodeExtensions += this.getExtensionInstallForm(false, extensionId, "no", "", node);
                 continue;
             }
             ExtensionApiResponse extensionApiResponse = gson.fromJson(ret, ExtensionApiResponse.class);
@@ -115,11 +128,11 @@ public class NodeController extends MgmtController<Node> {
             if (extensionApiResponse.isInstalled()) {
                 this.nodeStatus += this.getConsoleStatusLine("ok", "extension " + extensionId + " is installed.");
                 this.nodeExtensions += this.getExtensionInstallForm(false, extensionId, "yes",
-                        extensionApiResponse.getVersion(), node.getId());
+                        extensionApiResponse.getVersion(), node);
             } else {
                 this.nodeStatus += this.getConsoleStatusLine("warn", "extension " + extensionId + " is NOT installed.");
                 this.nodeExtensions += this.getExtensionInstallForm(false, extensionId, "no",
-                        extensionApiResponse.getVersion(), node.getId());
+                        extensionApiResponse.getVersion(), node);
             }
 
         }
@@ -133,11 +146,25 @@ public class NodeController extends MgmtController<Node> {
      * @return String statuslines.
      * @throws IOException
      */
-    private String doGetItems(Node node) throws IOException {
+    private String doGetItems(Node node) {
         // build url.
         String url = node.getIP() + "/rest/items?recursive=false&api_key=" + this.apiKey;
 
         return doRequest(url, "GET", null);
+    }
+
+    private String doGetConfig(Node node, String configName) {
+        // build url.
+        String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + this.apiKey;
+
+        return doRequest(url, "GET", null);
+    }
+
+    private String doUpdateConfig(Node node, String configName, String urlParams, String apiKey) {
+        // build url.
+        String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + apiKey;
+
+        return doRequest(url, "POST", urlParams);
     }
 
     /**
@@ -149,8 +176,7 @@ public class NodeController extends MgmtController<Node> {
      * @return String statuslines.
      * @throws IOException
      */
-    private String doInstallExtension(Node node, String extensionId, String installType, String apiKey)
-            throws IOException {
+    private String doInstallExtension(Node node, String extensionId, String installType, String apiKey) {
         // build url.
         if (!installType.equals("install") && !installType.equals("uninstall")) {
             return null;
@@ -162,6 +188,24 @@ public class NodeController extends MgmtController<Node> {
         return doRequest(url, "POST", null);
     }
 
+    private String doRequest(String url, String method, String urlParams) {
+        if (url.contains("http://")) {
+            try {
+                return doRequestHttp(url, method, urlParams);
+            } catch (IOException e) {
+                logger.error(e.getMessage());
+            }
+        } else if (url.contains("https://")) {
+            try {
+                return doRequestHttps(url, method, urlParams);
+            } catch (IOException | KeyManagementException | NoSuchAlgorithmException e) {
+                logger.error(e.getMessage());
+            }
+        }
+        logger.debug("### No http or https passed.");
+        return "";
+    }
+
     /**
      * Performes a request to the REST-API.
      *
@@ -171,7 +215,7 @@ public class NodeController extends MgmtController<Node> {
      * @return String response
      * @throws IOException
      */
-    private String doRequest(String url, String method, String urlParams) throws IOException {
+    private String doRequestHttp(String url, String method, String urlParams) throws IOException {
         // init connection object.
         HttpURLConnection con = (HttpURLConnection) new URL(url).openConnection();
         // set timeout to 0.5s
@@ -212,6 +256,82 @@ public class NodeController extends MgmtController<Node> {
         return response.toString();
     }
 
+    private String doRequestHttps(String url, String method, String urlParams)
+            throws IOException, NoSuchAlgorithmException, KeyManagementException {
+        // we assume you know to which host you will connect,
+        // so allow all certs and make no cert check
+        // taken from
+        // @url(http://stackoverflow.com/questions/19540289/how-to-fix-the-java-security-cert-certificateexception-no-subject-alternative)
+        SSLContext sc = SSLContext.getInstance("SSL");
+        TrustManager[] trustAllCerts = new TrustManager[] { new X509TrustManager() {
+
+            @Override
+            public void checkClientTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            }
+
+            @Override
+            public void checkServerTrusted(X509Certificate[] chain, String authType) throws CertificateException {
+            }
+
+            @Override
+            public X509Certificate[] getAcceptedIssuers() {
+                return null;
+            }
+        } };
+
+        sc.init(null, trustAllCerts, new SecureRandom());
+
+        // set socket factory
+        HttpsURLConnection.setDefaultSSLSocketFactory(sc.getSocketFactory());
+
+        HostnameVerifier allHostsValid = new HostnameVerifier() {
+            @Override
+            public boolean verify(String hostname, SSLSession session) {
+                return true;
+            }
+        };
+        // set hostname verifier
+        HttpsURLConnection.setDefaultHostnameVerifier(allHostsValid);
+
+        HttpsURLConnection con = (HttpsURLConnection) new URL(url).openConnection();
+
+        // set timeout to 0.5s
+        con.setConnectTimeout(500);
+        // set method to post.
+        con.setRequestMethod(method);
+        // enable output.
+        con.setDoOutput(true);
+
+        if (method.equals("POST") && urlParams != null) {
+            // create stream
+            DataOutputStream wr = new DataOutputStream(con.getOutputStream());
+            // add post params.
+            wr.writeBytes(urlParams);
+            // clear stream
+            wr.flush();
+            // close stream.
+            wr.close();
+        }
+
+        int responseCode = con.getResponseCode();
+        // check response code.
+        if (responseCode != 200) {
+            return null;
+        }
+
+        // read request repsonse.
+        BufferedReader br = new BufferedReader(new InputStreamReader(con.getInputStream()));
+        String inputLine;
+        StringBuffer response = new StringBuffer();
+
+        while ((inputLine = br.readLine()) != null) {
+            response.append(inputLine);
+        }
+        br.close();
+        con.disconnect();
+        return response.toString();
+    }
+
     /**
      * Performs the version check of OH/ESH
      *
@@ -220,11 +340,186 @@ public class NodeController extends MgmtController<Node> {
      * @return String statuslines.
      * @throws IOException
      */
-    private String doVersionCheck(Node node) throws IOException {
+    private String doVersionCheck(Node node) {
         // build url.
         String url = node.getIP() + "/rest?api_key=" + this.apiKey;
 
         return doRequest(url, "GET", null);
+    }
+
+    private String formatAttribute(String value) {
+        if (value != null) {
+            return value;
+        }
+        return "";
+    }
+
+    private String getBindingConfigOptions(Node node, String name) {
+        StringBuilder sb = new StringBuilder();
+        Gson gson = new Gson();
+        if (name.equals("binding-mqtt")) {
+            // mqtt.cfg
+            String ret = this.doGetConfig(node, "mqtt");
+            Compat1xMqttConfigDTO mqttConfigResponse = gson.fromJson(ret, Compat1xMqttConfigDTO.class);
+            if (mqttConfigResponse == null) {
+                this.nodeStatus += this.getConsoleStatusLine("error", "Could not load config for mqtt");
+                // return null;
+                mqttConfigResponse = new Compat1xMqttConfigDTO();
+            } else {
+                this.nodeStatus += this.getConsoleStatusLine("ok", "Loaded config for mqtt");
+            }
+            if (!node.getName().equals(mqttConfigResponse.getClientId())) {
+                this.nodeStatus += this.getConsoleStatusLine("error", "Node Name and Client ID don't match. BAD ERROR");
+            }
+
+            sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
+                    + this.getPlural(this.getEntityName()) + "&action=updateConfig&id=" + node.getId()
+                    + "\" id=\"form-config-mqtt\" class=\"form-horizontal\">");
+            sb.append("<input type=\"hidden\" name=\"configName\" value=\"mqtt\">");
+            sb.append("<input type=\"hidden\" name=\"apiKey\" value=\"" + this.apiKey + "\">");
+            sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
+            // Broker
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"mqtt-broker\" class=\"col-sm-2 control-label\">Broker</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input type=\"text\" class=\"form-control\" name=\"mqtt-broker\" value=\""
+                    + this.formatAttribute(mqttConfigResponse.getBroker()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // Host
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"mqtt-host\" class=\"col-sm-2 control-label\">Host</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input type=\"text\" class=\"form-control\" name=\"mqtt-host\" value=\""
+                    + this.formatAttribute(mqttConfigResponse.getHost()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // ClientID
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"mqtt-clientId\" class=\"col-sm-2 control-label\">Client-ID</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input readonly type=\"text\" class=\"form-control\" name=\"mqtt-clientId\" value=\""
+                    + this.formatAttribute(node.getName()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // Username
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"mqtt-username\" class=\"col-sm-2 control-label\">Username</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input type=\"text\" class=\"form-control\" name=\"mqtt-username\" value=\""
+                    + this.formatAttribute(mqttConfigResponse.getUsername()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // Password
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"mqtt-password\" class=\"col-sm-2 control-label\">Password</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input type=\"text\" class=\"form-control\" name=\"mqtt-password\" value=\""
+                    + this.formatAttribute(mqttConfigResponse.getPassword()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // Submit button
+            sb.append("<div class=\"form-group\">");
+            sb.append("<div class=\"col-sm-offset-2 col-sm-10\">");
+            sb.append("<input type=\"submit\" class=\"btn btn-success\" value=\"Save MQTT Config\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            sb.append("</form>");
+
+            // mqtt-eventbus.cfg
+            ret = this.doGetConfig(node, "mqtt-eventbus");
+            Compat1xMqttEventbusConfigDTO mqttEventbusConfigResponse = gson.fromJson(ret,
+                    Compat1xMqttEventbusConfigDTO.class);
+            if (mqttEventbusConfigResponse == null) {
+                this.nodeStatus += this.getConsoleStatusLine("error", "Could not load config for mqtt-eventbus");
+                mqttEventbusConfigResponse = new Compat1xMqttEventbusConfigDTO();
+                // return null;
+            } else {
+                this.nodeStatus += this.getConsoleStatusLine("ok", "Loaded config for mqtt-eventbus");
+            }
+
+            if (!mqttEventbusConfigResponse.getBroker().equals(mqttConfigResponse.getBroker())) {
+                this.nodeStatus += this.getConsoleStatusLine("error", "Node Name and Client ID don't match. BAD ERROR");
+            }
+
+            sb.append("<hr>");
+            sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
+                    + this.getPlural(this.getEntityName()) + "&action=updateConfig&id=" + node.getId()
+                    + "\" id=\"form-config-mqtt-eventbus\" class=\"form-horizontal\">");
+            sb.append("<input type=\"hidden\" name=\"configName\" value=\"mqtt-eventbus\">");
+            sb.append("<input type=\"hidden\" name=\"apiKey\" value=\"" + this.apiKey + "\">");
+            sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
+            // Broker
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"mqtt-eventbus-broker\" class=\"col-sm-2 control-label\">Broker</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input type=\"text\" class=\"form-control\" name=\"mqtt-eventbus-broker\" value=\""
+                    + this.formatAttribute(mqttEventbusConfigResponse.getBroker()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // StatePublishTopic
+            sb.append("<div class=\"form-group\">");
+            sb.append(
+                    "<label for=\"mqtt-eventbus-statePublishTopic\" class=\"col-sm-2 control-label\">StatePublishTopic</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            String statePublishTopic = "/" + node.getName() + "/out/${item}/state";
+            sb.append(
+                    "<input readonly type=\"text\" class=\"form-control\" name=\"mqtt-eventbus-statePublishTopic\" value=\""
+                            + statePublishTopic + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // CommandSubscribeTopic
+            sb.append("<div class=\"form-group\">");
+            sb.append(
+                    "<label for=\"mqtt-eventbus-commandSubscribeTopic\" class=\"col-sm-2 control-label\">CommandSubscribeTopic</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            String commandSubscribeTopic = "/" + node.getName() + "/in/${item}/command";
+            sb.append(
+                    "<input readonly type=\"text\" class=\"form-control\" name=\"mqtt-eventbus-commandSubscribeTopic\" value=\""
+                            + commandSubscribeTopic + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // Submit button
+            sb.append("<div class=\"form-group\">");
+            sb.append("<div class=\"col-sm-offset-2 col-sm-10\">");
+            sb.append("<input type=\"submit\" class=\"btn btn-success\" value=\"Save MQTT-Eventbus Config\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            sb.append("</form>");
+        } else if (name.equals("binding-aleoncean")) {
+            // aleoncean.cfg
+            String ret = this.doGetConfig(node, "aleoncean");
+            Compat1xAleonceanConfigDTO aleonceanConfigResponse = gson.fromJson(ret, Compat1xAleonceanConfigDTO.class);
+            if (aleonceanConfigResponse == null) {
+                this.nodeStatus += this.getConsoleStatusLine("error", "Could not load config for mqtt");
+                // return null;
+                aleonceanConfigResponse = new Compat1xAleonceanConfigDTO();
+            } else {
+                this.nodeStatus += this.getConsoleStatusLine("ok", "Loaded config for aleoncean");
+            }
+            sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
+                    + this.getPlural(this.getEntityName()) + "&action=updateConfig&id=" + node.getId()
+                    + "\" id=\"form-config-mqtt\" class=\"form-horizontal\">");
+            sb.append("<input type=\"hidden\" name=\"configName\" value=\"aleoncean\">");
+            sb.append("<input type=\"hidden\" name=\"apiKey\" value=\"" + this.apiKey + "\">");
+            sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
+            // Port
+            sb.append("<div class=\"form-group\">");
+            sb.append("<label for=\"aleoncean-port\" class=\"col-sm-2 control-label\">Port</label>");
+            sb.append("<div class=\"col-sm-10\">");
+            sb.append("<input type=\"text\" class=\"form-control\" name=\"aleoncean-port\" value=\""
+                    + this.formatAttribute(aleonceanConfigResponse.getPort()) + "\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            // Submit button
+            sb.append("<div class=\"form-group\">");
+            sb.append("<div class=\"col-sm-offset-2 col-sm-10\">");
+            sb.append("<input type=\"submit\" class=\"btn btn-success\" value=\"Save MQTT Config\">");
+            sb.append("</div>");
+            sb.append("</div>");
+            sb.append("</form>");
+        }
+        return sb.toString();
     }
 
     /**
@@ -286,15 +581,25 @@ public class NodeController extends MgmtController<Node> {
         this.loadNodeStatus(node);
         template = template.replace("###NODE_STATUS###", this.nodeStatus);
         template = template.replace("###NODE_ITEMS###", this.nodeItems);
-        this.nodeExtensions += this.getExtensionInstallForm(true, "", "", "", node.getId());
+        this.nodeExtensions += this.getExtensionInstallForm(true, "", "", "", node);
         template = template.replace("###NODE_EXTENSIONS###", this.nodeExtensions);
+
+        String selectOptions = String.join("</option><option>", node.getExtensions());
+        selectOptions = "<option>" + selectOptions + "</option>";
+        template = template.replace("###NODE_BINDINGS###", selectOptions);
+
+        template = template.replaceAll("###HIDDEN_INPUT_URL_ID###",
+                "<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
+        template = template.replace("###FORM_ACTION_NEW_NODE_ITEM###", this.getServlet().getBaseUrl() + "?controller="
+                + this.getPlural(this.getEntityName()) + "&action=createNodeItem&id=" + node.getId());
+        template = template.replace("###FORM_ACTION_DISCOVER_ITEM###", this.getServlet().getBaseUrl() + "?controller="
+                + this.getPlural(this.getEntityName()) + "&action=discoverItem&id=" + node.getId());
 
         content += template;
         return content;
     }
 
-    private String getExtensionInstallForm(boolean flagInput, String name, String status, String version,
-            String nodeId) {
+    private String getExtensionInstallForm(boolean flagInput, String name, String status, String version, Node node) {
         StringBuilder sb = new StringBuilder();
 
         String formId = "extension-new";
@@ -302,9 +607,9 @@ public class NodeController extends MgmtController<Node> {
 
         if (!flagInput) {
             formId = "extension-" + name;
-            sb.append("<form id=\"" + formId + "\"method=\"POST\" action=\"" + this.getServlet().getBaseUrl()
-                    + "?controller=" + this.getPlural(this.getEntityName()) + "&action=installExtension&id=" + nodeId
-                    + "\">");
+            sb.append("<form id=\"" + formId + "\" method=\"POST\" action=\"" + this.getServlet().getBaseUrl()
+                    + "?controller=" + this.getPlural(this.getEntityName()) + "&action=installExtension&id="
+                    + node.getId() + "\">");
             sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
             sb.append("<input type=\"hidden\" name=\"extension-name\" value=\"" + name + "\">");
             sb.append("<input type=\"hidden\" name=\"apiKey\" value=\"" + this.apiKey + "\">");
@@ -319,8 +624,8 @@ public class NodeController extends MgmtController<Node> {
             sb.append("<td>" + status + "</td>");
         } else {
             sb.append("<td><form id=\"" + formId + "\"method=\"POST\" action=\"" + this.getServlet().getBaseUrl()
-                    + "?controller=" + this.getPlural(this.getEntityName()) + "&action=installExtension&id=" + nodeId
-                    + "\">");
+                    + "?controller=" + this.getPlural(this.getEntityName()) + "&action=installExtension&id="
+                    + node.getId() + "\">");
             sb.append(
                     "<input type=\"text\" class=\"form-control\" name=\"extension-name\" placeholder=\"binding-xyz\">");
             sb.append("<input type=\"hidden\" name=\"install-type\" value=\"install\">");
@@ -344,7 +649,7 @@ public class NodeController extends MgmtController<Node> {
         if (!flagInput && status.equals("no")) {
             sb.append("<form class=\"form-inline\" method=\"POST\" id=\"" + formId + "-delete\" action=\""
                     + this.getServlet().getBaseUrl() + "?controller=" + this.getPlural(this.getEntityName())
-                    + "&action=deleteExtension&id=" + nodeId + "\">");
+                    + "&action=deleteExtension&id=" + node.getId() + "\">");
             sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
             sb.append("<input type=\"hidden\" name=\"extension-name\" value=\"" + name + "\">");
             sb.append("<a class=\"btn btn-danger\" href=\"#\" onclick=\"$('#" + formId
@@ -354,12 +659,12 @@ public class NodeController extends MgmtController<Node> {
         sb.append("</td>");
 
         if (!flagInput) {
-            if (!version.equals("")) {
-                sb.append("<td><a class=\"btn btn-warning\" href=\"#\" onclick=\"$('#" + formId
-                        + "-details').toggleClass('hidden');return false;\">+</a></td>");
-            } else {
-                sb.append("<td>&nbsp;</td>");
-            }
+            // if (!version.equals("")) {
+            sb.append("<td><a class=\"btn btn-warning\" href=\"#\" onclick=\"$('#" + formId
+                    + "-details').toggleClass('hidden');return false;\">+</a></td>");
+            // } else {
+            // sb.append("<td>&nbsp;</td>");
+            // }
         } else {
             sb.append("<td>&nbsp;</td>");
         }
@@ -367,17 +672,22 @@ public class NodeController extends MgmtController<Node> {
         sb.append("</tr>");
 
         // check version of binding, if lower than 2.0.0 configuration via rest api is not possible.
-        if (!version.equals("")) {
-            sb.append("<tr id=\"" + formId + "-details\" class=\"hidden\">");
-            sb.append("<td colspan=\"4\">");
-            if (!version.equals("2.0.0.SNAPSHOT") && !version.equals("0.9.0.SNAPSHOT")) {
-                sb.append("Config: Manual config for extension " + name + " needed.");
+        // if (!version.equals("")) {
+        sb.append("<tr id=\"" + formId + "-details\" class=\"hidden\">");
+        sb.append("<td colspan=\"4\">");
+        if (!version.equals("2.0.0.SNAPSHOT") && !version.equals("0.9.0.SNAPSHOT")) {
+            String bindingConfigOptions = this.getBindingConfigOptions(node, name);
+            if (bindingConfigOptions != null && !bindingConfigOptions.equals("")) {
+                sb.append(bindingConfigOptions);
             } else {
-                sb.append("Config: Automatic Config not implemented yet.");
+                sb.append("Config: Manual config for extension " + name + " needed.");
             }
-            sb.append("</td>");
-            sb.append("</tr>");
+        } else {
+            sb.append("Config: Automatic Config not implemented yet.");
         }
+        sb.append("</td>");
+        sb.append("</tr>");
+        // }
 
         return sb.toString();
     }
@@ -406,6 +716,9 @@ public class NodeController extends MgmtController<Node> {
         }
 
         String[] tmpExtensions = node.getExtensions();
+        if (tmpExtensions == null) {
+            tmpExtensions = new String[0];
+        }
         // build condition:
         // add: role should NOT exists yet.
         // delete: role must NOT exists yet.
@@ -480,13 +793,7 @@ public class NodeController extends MgmtController<Node> {
         String ret = null;
         Gson gson = new Gson();
 
-        // doAuthCheck
-        try {
-            ret = this.doAuthCheck(node);
-        } catch (IOException e) {
-            this.nodeStatus += this.getConsoleStatusLine("error", "node is offline");
-            return;
-        }
+        ret = this.doAuthCheck(node);
 
         this.nodeStatus += this.getConsoleStatusLine("ok", "node is online");
 
@@ -503,13 +810,7 @@ public class NodeController extends MgmtController<Node> {
         this.apiKey = authApiResponse.getToken();
         this.nodeStatus += this.getConsoleStatusLine("ok", "credentials are valid");
 
-        // doVersionCheck
-        try {
-            ret = this.doVersionCheck(node);
-        } catch (IOException e) {
-            this.nodeStatus += this.getConsoleStatusLine("error", "could not obtain version");
-            return;
-        }
+        ret = this.doVersionCheck(node);
         if (ret == null) {
             this.nodeStatus += this.getConsoleStatusLine("error", "could not obtain version");
             return;
@@ -523,13 +824,7 @@ public class NodeController extends MgmtController<Node> {
         String version = versionApiResponse.getVersion();
         this.nodeStatus += this.getConsoleStatusLine("ok", "node uses Eclipse Smarthome " + version);
 
-        // doGetItems
-        try {
-            ret = this.doGetItems(node);
-        } catch (IOException e) {
-            this.nodeStatus += this.getConsoleStatusLine("error", "could not obtain items");
-            return;
-        }
+        ret = this.doGetItems(node);
         if (ret == null) {
             this.nodeStatus += this.getConsoleStatusLine("error", "could not obtain items");
             return;
@@ -541,28 +836,25 @@ public class NodeController extends MgmtController<Node> {
             return;
         }
         for (ItemsApiResponse item : itemsApiResponses) {
-            String tmp = "<tr>";
-            tmp += "<td><a href=\"" + item.getLink() + "?api_key=" + apiKey + "\" target=\"_blank\">" + item.getName()
-                    + "</a></td>";
-            tmp += "<td>" + this.formatAttribute(item.getLabel()) + "</td>";
-            tmp += "<td>" + this.formatAttribute(item.getCategory()) + "</td>";
-            tmp += "<td>" + this.formatAttribute(item.getType()) + "</td>";
-            tmp += "<td><a class=\"btn btn-success\" href=\"#\">Add Item</a></td>";
-            tmp += "</tr>";
-            this.nodeItems += tmp;
+            StringBuilder sb = new StringBuilder();
+            sb.append("<tr>");
+            sb.append("<td><a href=\"" + item.getLink() + "?api_key=" + apiKey + "\" target=\"_blank\">"
+                    + item.getName() + "</a></td>");
+            sb.append("<td>" + this.formatAttribute(item.getLabel()) + "</td>");
+            sb.append("<td>" + this.formatAttribute(item.getCategory()) + "</td>");
+            sb.append("<td>" + this.formatAttribute(item.getType()) + "</td>");
+            sb.append("<td>");
+            sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
+                    + this.getPlural(this.getEntityName()) + "&action=createShadowItem&id=" + node.getId() + "\">");
+            sb.append("<input type=\"submit\" class=\"btn btn-success\" value=\"Add Shadow Item\">");
+            sb.append("</form>");
+            sb.append("</td>");
+            sb.append("</tr>");
+            this.nodeItems += sb.toString();
         }
         this.nodeStatus += this.getConsoleStatusLine("ok", "recieved items");
 
-        // String[] extensions = { "binding-mqtt", "binding-enocean", "binding0" };
-
         doCheckExtensions(node, node.getExtensions());
-    }
-
-    private String formatAttribute(String value) {
-        if (value != null) {
-            return value;
-        }
-        return "";
     }
 
     /**
@@ -593,9 +885,117 @@ public class NodeController extends MgmtController<Node> {
             return this.postInstallExtension(req);
         } else if (this.getUrlAction().equals("deleteExtension")) {
             return this.postDeleteExtension(req);
+        } else if (this.getUrlAction().equals("updateConfig")) {
+            return this.postUpdateConfig(req);
+        } else if (this.getUrlAction().equals("discoverItem")) {
+            return this.postDiscoverItem(req);
+        } else if (this.getUrlAction().equals("createNodeItem")) {
+            return this.postCreateNodeItem(req);
+        } else if (this.getUrlAction().equals("createShadowItem")) {
+            return this.postCreateShadowItem(req);
         }
 
         return false;
+    }
+
+    private boolean postCreateShadowItem(HttpServletRequest req) {
+        // TODO
+        // Shadow items are created on the master (no node needed)
+
+        String itemName = req.getParameter("itemName");
+        String itemType = req.getParameter("itemType");
+        String itemDesc = req.getParameter("itemDesc");
+        String itemIcon = req.getParameter("itemIcon");
+        String mqttBroker = req.getParameter("mqttBroker");
+        String mqttNodeName = req.getParameter("mqttNodeName");
+        String nodeItemName = req.getParameter("nodeItemName");
+
+        String urlParams = "itemName=" + itemName + "&itemType=" + itemType + "&itemDesc=" + itemDesc + "&itemIcon="
+                + itemIcon + "&mqttBroker=" + mqttBroker + "&mqttNodeName=" + mqttNodeName + "&nodeItemName="
+                + nodeItemName;
+        String ret = this.doCreateShadowItem(urlParams);
+        if (ret == null || !ret.equals("ok")) {
+            this.getSession().setAttribute("errors", "Could not create mqtt shadow item.");
+            return false;
+        }
+
+        this.getSession().setAttribute("success", "Successfully created mqtt shadow item.");
+        return false;
+    }
+
+    private String doCreateShadowItem(String urlParams) {
+        // build url.
+        String url = "https://localhost:8443/rest/compat1x_item/mqtt?api_key=" + apiKey;
+
+        return doRequest(url, "POST", urlParams);
+    }
+
+    private boolean postCreateNodeItem(HttpServletRequest req) {
+        // get node to obtain ip of node.
+        Node node = this.getRepository().get(this.getUrlId());
+        if (node == null) {
+            this.getSession().setAttribute("errors", "Could not create aleoncean item.");
+            return false;
+        }
+
+        String itemName = req.getParameter("itemName");
+        String itemType = req.getParameter("itemType");
+        String itemDesc = req.getParameter("itemDesc");
+        String itemIcon = req.getParameter("itemIcon");
+        String deviceRemoteId = req.getParameter("deviceRemoteId");
+        String deviceType = req.getParameter("deviceType");
+        String deviceParameter = req.getParameter("deviceParameter");
+
+        String urlParams = "itemName=" + itemName + "&itemType=" + itemType + "&itemDesc=" + itemDesc + "&itemIcon="
+                + itemIcon + "&deviceRemoteId=" + deviceRemoteId + "&deviceType=" + deviceType + "&deviceParameter="
+                + deviceParameter;
+
+        String ret = this.doCreateAleonceanItem(node, urlParams);
+        if (ret == null || !ret.equals("ok")) {
+            this.getSession().setAttribute("errors", "Could not create aleoncean node item.");
+            return false;
+        }
+
+        this.getSession().setAttribute("success", "Successfully created aleoncean node item.");
+        return false;
+    }
+
+    private String doCreateAleonceanItem(Node node, String urlParams) {
+        // build url.
+        String url = node.getIP() + "/rest/compat1x_item/aleoncean?api_key=" + apiKey;
+
+        return doRequest(url, "POST", urlParams);
+    }
+
+    private boolean postDiscoverItem(HttpServletRequest req) {
+        // TODO
+        // get node to obtain ip of node.
+        Node node = this.getRepository().get(this.getUrlId());
+        if (node == null) {
+            this.getSession().setAttribute("errors", "Could not scan for item.");
+            return false;
+        }
+
+        String bindingId = req.getParameter("bindingId");
+
+        String ret = this.doDiscoverItem(node, bindingId);
+        if (ret == null) {
+            this.getSession().setAttribute("errors", "Could not scan for node item.");
+            return false;
+        }
+
+        this.getSession().setAttribute("success", "Successfully scanned for node item.");
+        return false;
+    }
+
+    private String doDiscoverItem(Node node, String bindingId) {
+        if (bindingId == null || bindingId.equals("")) {
+            return null;
+        }
+        // build url.
+        String url = node.getIP() + "/rest/discovery/bindings/" + bindingId + "/scan?api_key=" + apiKey;
+
+        return doRequest(url, "POST", null);
     }
 
     public boolean postDeleteExtension(HttpServletRequest req) {
@@ -603,7 +1003,6 @@ public class NodeController extends MgmtController<Node> {
     }
 
     public boolean postInstallExtension(HttpServletRequest req) {
-        // get role to add from request.
         String extensionId = req.getParameter("extension-name");
         String installType = req.getParameter("install-type");
         String type = req.getParameter("type");
@@ -622,14 +1021,7 @@ public class NodeController extends MgmtController<Node> {
             }
         }
 
-        String ret = null;
-        // do install.
-        try {
-            ret = this.doInstallExtension(node, extensionId, installType, apiKey);
-        } catch (IOException e) {
-            this.getSession().setAttribute("errors", "Could not " + installType + " extension " + extensionId);
-            return false;
-        }
+        String ret = this.doInstallExtension(node, extensionId, installType, apiKey);
 
         if (ret == null) {
             this.getSession().setAttribute("errors", "Could not " + installType + " extension " + extensionId);
@@ -642,8 +1034,51 @@ public class NodeController extends MgmtController<Node> {
         } catch (InterruptedException e) {
             // do nothing if sleep fails.
         }
-
+        if (installType.equals("install")) {
+            installType = "add";
+        }
         this.getSession().setAttribute("success", "Successfully " + installType + "ed extension " + extensionId);
+        return true;
+    }
+
+    public boolean postUpdateConfig(HttpServletRequest req) {
+        String configName = req.getParameter("configName");
+        String apiKey = req.getParameter("apiKey");
+        Node node = this.getRepository().get(this.getUrlId());
+        if (node == null) {
+            this.getSession().setAttribute("errors", "Could not update config for " + configName + ".");
+            return false;
+        }
+
+        String urlParams = "";
+        if (configName.equals("mqtt")) {
+            String broker = req.getParameter("mqtt-broker");
+            String host = req.getParameter("mqtt-host");
+            String clientId = req.getParameter("mqtt-clientId");
+            String username = req.getParameter("mqtt-username");
+            String password = req.getParameter("mqtt-password");
+            urlParams = "broker=" + broker + "&host=" + host + "&clientId=" + clientId + "&username=" + username
+                    + "&password=" + password;
+        } else if (configName.equals("mqtt-eventbus")) {
+            String broker = req.getParameter("mqtt-eventbus-broker");
+            String statePublishTopic = req.getParameter("mqtt-eventbus-statePublishTopic");
+            String commandSubscribeTopic = req.getParameter("mqtt-eventbus-commandSubscribeTopic");
+            urlParams = "broker=" + broker + "&statePublishTopic=" + statePublishTopic + "&commandSubscribeTopic="
+                    + commandSubscribeTopic;
+        } else if (configName.equals("aleoncean")) {
+            String port = req.getParameter("aleoncean-port");
+            urlParams = "port=" + port;
+        } else {
+            return false;
+        }
+
+        String ret = this.doUpdateConfig(node, configName, urlParams, apiKey);
+        if (ret == null || !ret.equals("ok")) {
+            this.getSession().setAttribute("errors", "Could not update config for " + configName);
+            return false;
+        }
+
+        this.getSession().setAttribute("success", "Successfully updated config for " + configName);
         return true;
     }
 

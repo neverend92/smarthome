@@ -15,11 +15,20 @@ public class NodeImpl implements Node {
     private String description;
 
     /**
+     * name of the node.
+     * used for mqtt.
+     */
+    private String name;
+
+    /**
      * credentials to authenticate at node.
      * if they are null, no auth is needed.
      */
     private String credentials;
 
+    /**
+     * extensions that are handled by this node.
+     */
     private String[] extensions;
 
     /*
@@ -30,10 +39,13 @@ public class NodeImpl implements Node {
     @Override
     public String get(String attribute) {
         if (attribute.equals("ip")) {
-            return this.ip;
+            return this.getIP();
         }
         if (attribute.equals("description")) {
-            return this.description;
+            return this.getDescription();
+        }
+        if (attribute.equals("name")) {
+            return this.getName();
         }
         if (attribute.equals("credentials")) {
             return this.getCredentials();
@@ -94,6 +106,16 @@ public class NodeImpl implements Node {
     /*
      * (non-Javadoc)
      *
+     * @see org.eclipse.smarthome.ui.nodemgmt.Node#getExtensions()
+     */
+    @Override
+    public String[] getExtensions() {
+        return this.extensions;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see org.eclipse.smarthome.core.auth.DTO#getId()
      */
     @Override
@@ -111,6 +133,11 @@ public class NodeImpl implements Node {
         return this.ip;
     }
 
+    @Override
+    public String getName() {
+        return this.name;
+    }
+
     /*
      * (non-Javadoc)
      *
@@ -124,6 +151,10 @@ public class NodeImpl implements Node {
         }
         if (attribute.equals("description")) {
             this.setDescription(value);
+            return;
+        }
+        if (attribute.equals("name")) {
+            this.setName(value);
             return;
         }
         if (attribute.equals("credentials")) {
@@ -167,6 +198,16 @@ public class NodeImpl implements Node {
     /*
      * (non-Javadoc)
      *
+     * @see org.eclipse.smarthome.ui.nodemgmt.Node#setExtensions(java.lang.String[])
+     */
+    @Override
+    public void setExtensions(String[] extensions) {
+        this.extensions = extensions;
+    }
+
+    /*
+     * (non-Javadoc)
+     *
      * @see org.eclipse.smarthome.ui.nodemgmt.Node#setIP(java.lang.String)
      */
     @Override
@@ -174,24 +215,9 @@ public class NodeImpl implements Node {
         this.ip = ip;
     }
 
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.smarthome.ui.nodemgmt.Node#getExtensions()
-     */
     @Override
-    public String[] getExtensions() {
-        return this.extensions;
-    }
-
-    /*
-     * (non-Javadoc)
-     * 
-     * @see org.eclipse.smarthome.ui.nodemgmt.Node#setExtensions(java.lang.String[])
-     */
-    @Override
-    public void setExtensions(String[] extensions) {
-        this.extensions = extensions;
+    public void setName(String name) {
+        this.name = name;
     }
 
 }

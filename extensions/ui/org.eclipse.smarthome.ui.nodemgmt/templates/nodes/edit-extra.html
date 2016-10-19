@@ -7,9 +7,9 @@
 <table class="table table-bordered table-striped table-hover">
     <thead>
         <tr>
-            <th>&nbsp;</th>
             <th>Name</th>
             <th>Installed</th>
+            <th>&nbsp;</th>
             <th>&nbsp;</th>
         </tr>
     </thead>
@@ -17,8 +17,82 @@
         ###NODE_EXTENSIONS###
     </tbody>
 </table>
+<hr>
+<h4>Create Node Items</h4>
+<h5>Create Item by Discovery</h5>
+<form method="POST" action="###FORM_ACTION_DISCOVER_ITEM###" class="form-horizontal">
+    ###HIDDEN_INPUT_URL_ID###
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="discovery-binding">Binding ID</label>
+        <div class="col-sm-10">
+          <select class="form-control" name="discovery-binding">
+            <option value="">Please select...</option>
+            ###NODE_BINDINGS###
+          </select>
+        </div>
+    </div>
+    <div class="form-group">
+        <div class="col-sm-offset-2 col-sm-10">
+          <button type="submit" class="btn btn-success">Discover New Item</button>
+        </div>
+    </div>
+</form>
+<hr>
+<h5>Create Aleoncean Item manually</h5>
+<p>Format will be: <i>ITEM_TYPE</i> <i>ITEM_NAME</i> "<i>ITEM_DESC</i>" &lt;<i>ITEM_ICON</i>&gt; {aleoncean="REMOTEID=<i>DEVICE_REMOTEID</i>,TYPE=<i>DEVICE_TYPE</i>,PARAMETER=<i>DEVICE_PARAMETER</i>"}</p>
+<form method="POST" action="###FORM_ACTION_NEW_NODE_ITEM###" class="form-horizontal">
+    ###HIDDEN_INPUT_URL_ID###
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="aleoncean-item-name">Name</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="aleoncean-item-name" placeholder="Name">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="aleoncean-item-type">Item Type</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="aleoncean-item-type" placeholder="Number">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="aleoncean-item-desc">Item Desc</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="aleoncean-item-desc" placeholder="Window Contact [%s]">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="aleoncean-item-icon">Item Icon</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="aleoncean-item-icon" placeholder="temperature">
+        </div>
+    </div>
 
-<h4>Node Items</h4>
+	<div class="form-group">
+		<label class="col-sm-2 control-label" for="aleoncean-device-remoteid">Device Remote ID</label>
+		<div class="col-sm-10">
+		  <input type="text" class="form-control" name="aleoncean-device-remoteid" placeholder="XX:XX:XX:XX">
+		</div>
+	</div>
+	<div class="form-group">
+        <label class="col-sm-2 control-label" for="aleoncean-device-type">Device Type</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="aleoncean-device-type" placeholder="RD_XX-XX-XX">
+        </div>
+    </div>
+    <div class="form-group">
+        <label class="col-sm-2 control-label" for="aleoncean-device-parameter">Device Parameter</label>
+        <div class="col-sm-10">
+          <input type="text" class="form-control" name="aleoncean-device-parameter" placeholder="OPEN_CLOSED">
+        </div>
+    </div>
+	<div class="form-group">
+		<div class="col-sm-offset-2 col-sm-10">
+		  <button type="submit" class="btn btn-success">Add New Aleoncean Item</button>
+		</div>
+	</div>
+</form>
+<hr>
+<h4>Create Shadow Items from Node Items</h4>
 <table class="table table-bordered table-striped table-hover">
     <thead>
         <tr>
