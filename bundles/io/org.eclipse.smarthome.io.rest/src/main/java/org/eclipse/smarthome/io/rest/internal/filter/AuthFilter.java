@@ -59,11 +59,11 @@ public class AuthFilter implements ContainerRequestFilter {
             // special case for updating item state.
             String specialReqUrl = "PUT /rest/items/.*/state";
             String queryString = specialReqUrl;
-            logger.debug("### queryString: {}", queryString);
+            // logger.debug("### queryString: {}", queryString);
             if (reqUrl.matches(queryString)) {
                 reqUrl = specialReqUrl;
             }
-            logger.debug("### rest path: {}", reqUrl);
+            // logger.debug("### rest path: {}", reqUrl);
 
             if (authProvider.isAllowed(auth, "/rest") || authProvider.isAllowed(auth, reqUrl)) {
                 return;
