@@ -63,6 +63,12 @@ public class NodeController extends MgmtController<Node> {
         this.getAttributes().add("credentials");
     }
 
+    private String cleanOutputRet(String ret) {
+        ret = ret.replaceAll("\"", "");
+        ret = ret.replaceAll("'", "");
+        return ret;
+    }
+
     /**
      * Performs the auth check
      * Checks for availability of node and for correct credentials.
@@ -350,14 +356,6 @@ public class NodeController extends MgmtController<Node> {
         return response.toString();
     }
 
-    private String encodeUrlParams(String data) {
-        logger.error("### Data 1: {}", data);
-        data = data.replaceAll("%(?![0-9a-fA-F]{2})", "%25");
-        data = data.replaceAll("\\+", "%2B");
-        logger.error("### Data 2: {}", data);
-        return data;
-    }
-
     private String doUpdateConfig(Node node, String configName, String urlParams, String apiKey) {
         // build url.
         String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + apiKey;
@@ -378,6 +376,14 @@ public class NodeController extends MgmtController<Node> {
         String url = node.getIP() + "/rest?api_key=" + this.apiKey;
 
         return doRequest(url, "GET", null);
+    }
+
+    private String encodeUrlParams(String data) {
+        logger.error("### Data 1: {}", data);
+        data = data.replaceAll("%(?![0-9a-fA-F]{2})", "%25");
+        data = data.replaceAll("\\+", "%2B");
+        logger.error("### Data 2: {}", data);
+        return data;
     }
 
     private String formatAttribute(String value) {
@@ -1122,12 +1128,6 @@ public class NodeController extends MgmtController<Node> {
 
         this.getSession().setAttribute("success", "Successfully updated config for " + configName);
         return true;
-    }
-
-    private String cleanOutputRet(String ret) {
-        ret = ret.replaceAll("\"", "");
-        ret = ret.replaceAll("'", "");
-        return ret;
     }
 
 }
