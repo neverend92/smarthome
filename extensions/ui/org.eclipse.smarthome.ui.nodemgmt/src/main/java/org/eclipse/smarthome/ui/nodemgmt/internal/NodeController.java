@@ -41,6 +41,7 @@ public class NodeController extends MgmtController<Node> {
     private String nodeItems = "";
     private String nodeExtensions = "";
     private String apiKey = "";
+    private String broker = "";
 
     /**
      * NodeController
@@ -138,6 +139,37 @@ public class NodeController extends MgmtController<Node> {
         }
     }
 
+    private String doCreateAleonceanItem(Node node, String urlParams, String apiKey) {
+        // build url.
+        String url = node.getIP() + "/rest/compat1x_item/aleoncean?api_key=" + apiKey;
+
+        return doRequest(url, "POST", urlParams);
+    }
+
+    private String doCreateShadowItem(String urlParams, String apiKey) {
+        // build url.
+        String url = "https://localhost:8443/rest/compat1x_item/mqtt?api_key=" + apiKey;
+
+        return doRequest(url, "POST", urlParams);
+    }
+
+    private String doDiscoverItem(Node node, String bindingId, String apiKey) {
+        if (bindingId == null || bindingId.equals("")) {
+            return null;
+        }
+        // build url.
+        String url = node.getIP() + "/rest/discovery/bindings/" + bindingId + "/scan?api_key=" + apiKey;
+
+        return doRequest(url, "POST", null);
+    }
+
+    private String doGetConfig(Node node, String configName) {
+        // build url.
+        String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + this.apiKey;
+
+        return doRequest(url, "GET", null);
+    }
+
     /**
      * Retrieves the items from the node.
      *
@@ -151,20 +183,6 @@ public class NodeController extends MgmtController<Node> {
         String url = node.getIP() + "/rest/items?recursive=false&api_key=" + this.apiKey;
 
         return doRequest(url, "GET", null);
-    }
-
-    private String doGetConfig(Node node, String configName) {
-        // build url.
-        String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + this.apiKey;
-
-        return doRequest(url, "GET", null);
-    }
-
-    private String doUpdateConfig(Node node, String configName, String urlParams, String apiKey) {
-        // build url.
-        String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + apiKey;
-
-        return doRequest(url, "POST", urlParams);
     }
 
     /**
@@ -229,7 +247,7 @@ public class NodeController extends MgmtController<Node> {
             // create stream
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
             // add post params.
-            wr.writeBytes(urlParams);
+            wr.writeBytes(this.encodeUrlParams(urlParams));
             // clear stream
             wr.flush();
             // close stream.
@@ -306,7 +324,7 @@ public class NodeController extends MgmtController<Node> {
             // create stream
             DataOutputStream wr = new DataOutputStream(con.getOutputStream());
             // add post params.
-            wr.writeBytes(urlParams);
+            wr.writeBytes(this.encodeUrlParams(urlParams));
             // clear stream
             wr.flush();
             // close stream.
@@ -330,6 +348,21 @@ public class NodeController extends MgmtController<Node> {
         br.close();
         con.disconnect();
         return response.toString();
+    }
+
+    private String encodeUrlParams(String data) {
+        logger.error("### Data 1: {}", data);
+        data = data.replaceAll("%(?![0-9a-fA-F]{2})", "%25");
+        data = data.replaceAll("\\+", "%2B");
+        logger.error("### Data 2: {}", data);
+        return data;
+    }
+
+    private String doUpdateConfig(Node node, String configName, String urlParams, String apiKey) {
+        // build url.
+        String url = node.getIP() + "/rest/compat1x_config/" + configName + "?api_key=" + apiKey;
+
+        return doRequest(url, "POST", urlParams);
     }
 
     /**
@@ -371,6 +404,9 @@ public class NodeController extends MgmtController<Node> {
             if (!node.getName().equals(mqttConfigResponse.getClientId())) {
                 this.nodeStatus += this.getConsoleStatusLine("error", "Node Name and Client ID don't match. BAD ERROR");
             }
+
+            // set broker globally.
+            this.broker = mqttConfigResponse.getBroker();
 
             sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
                     + this.getPlural(this.getEntityName()) + "&action=updateConfig&id=" + node.getId()
@@ -589,7 +625,9 @@ public class NodeController extends MgmtController<Node> {
         template = template.replace("###NODE_BINDINGS###", selectOptions);
 
         template = template.replaceAll("###HIDDEN_INPUT_URL_ID###",
-                "<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
+                "<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">"
+                        + "<input type=\"hidden\" name=\"apiKey\" value=\"" + this.apiKey + "\">"
+                        + "<input type=\"hidden\" name=\"broker\" value=\"" + this.broker + "\">");
         template = template.replace("###FORM_ACTION_NEW_NODE_ITEM###", this.getServlet().getBaseUrl() + "?controller="
                 + this.getPlural(this.getEntityName()) + "&action=createNodeItem&id=" + node.getId());
         template = template.replace("###FORM_ACTION_DISCOVER_ITEM###", this.getServlet().getBaseUrl() + "?controller="
@@ -824,6 +862,8 @@ public class NodeController extends MgmtController<Node> {
         String version = versionApiResponse.getVersion();
         this.nodeStatus += this.getConsoleStatusLine("ok", "node uses Eclipse Smarthome " + version);
 
+        doCheckExtensions(node, node.getExtensions());
+
         ret = this.doGetItems(node);
         if (ret == null) {
             this.nodeStatus += this.getConsoleStatusLine("error", "could not obtain items");
@@ -838,7 +878,7 @@ public class NodeController extends MgmtController<Node> {
         for (ItemsApiResponse item : itemsApiResponses) {
             StringBuilder sb = new StringBuilder();
             sb.append("<tr>");
-            sb.append("<td><a href=\"" + item.getLink() + "?api_key=" + apiKey + "\" target=\"_blank\">"
+            sb.append("<td><a href=\"" + item.getLink() + "?api_key=" + this.apiKey + "\" target=\"_blank\">"
                     + item.getName() + "</a></td>");
             sb.append("<td>" + this.formatAttribute(item.getLabel()) + "</td>");
             sb.append("<td>" + this.formatAttribute(item.getCategory()) + "</td>");
@@ -846,6 +886,15 @@ public class NodeController extends MgmtController<Node> {
             sb.append("<td>");
             sb.append("<form method=\"POST\" action=\"" + this.getServlet().getBaseUrl() + "?controller="
                     + this.getPlural(this.getEntityName()) + "&action=createShadowItem&id=" + node.getId() + "\">");
+            sb.append("<input type=\"hidden\" name=\"apiKey\" value=\"" + this.apiKey + "\">");
+            sb.append("<input type=\"hidden\" name=\"" + this.getFieldName() + "\" value=\"" + this.getUrlId() + "\">");
+            sb.append("<input type=\"hidden\" name=\"node-item-type\" value=\"" + item.getType() + "\">");
+            sb.append("<input type=\"hidden\" name=\"node-item-name\" value=\"" + item.getName() + "\">");
+            sb.append("<input type=\"hidden\" name=\"node-item-desc\" value=\"" + item.getLabel() + "\">");
+            sb.append("<input type=\"hidden\" name=\"node-item-icon\" value=\"" + null + "\">"); // icon???
+            sb.append("<input type=\"hidden\" name=\"node-name\" value=\"" + node.getName() + "\">");
+            sb.append("<input type=\"hidden\" name=\"broker\" value=\"" + this.broker + "\">");
+
             sb.append("<input type=\"submit\" class=\"btn btn-success\" value=\"Add Shadow Item\">");
             sb.append("</form>");
             sb.append("</td>");
@@ -853,8 +902,6 @@ public class NodeController extends MgmtController<Node> {
             this.nodeItems += sb.toString();
         }
         this.nodeStatus += this.getConsoleStatusLine("ok", "recieved items");
-
-        doCheckExtensions(node, node.getExtensions());
     }
 
     /**
@@ -898,38 +945,6 @@ public class NodeController extends MgmtController<Node> {
         return false;
     }
 
-    private boolean postCreateShadowItem(HttpServletRequest req) {
-        // TODO
-        // Shadow items are created on the master (no node needed)
-
-        String itemName = req.getParameter("itemName");
-        String itemType = req.getParameter("itemType");
-        String itemDesc = req.getParameter("itemDesc");
-        String itemIcon = req.getParameter("itemIcon");
-        String mqttBroker = req.getParameter("mqttBroker");
-        String mqttNodeName = req.getParameter("mqttNodeName");
-        String nodeItemName = req.getParameter("nodeItemName");
-
-        String urlParams = "itemName=" + itemName + "&itemType=" + itemType + "&itemDesc=" + itemDesc + "&itemIcon="
-                + itemIcon + "&mqttBroker=" + mqttBroker + "&mqttNodeName=" + mqttNodeName + "&nodeItemName="
-                + nodeItemName;
-        String ret = this.doCreateShadowItem(urlParams);
-        if (ret == null || !ret.equals("ok")) {
-            this.getSession().setAttribute("errors", "Could not create mqtt shadow item.");
-            return false;
-        }
-
-        this.getSession().setAttribute("success", "Successfully created mqtt shadow item.");
-        return false;
-    }
-
-    private String doCreateShadowItem(String urlParams) {
-        // build url.
-        String url = "https://localhost:8443/rest/compat1x_item/mqtt?api_key=" + apiKey;
-
-        return doRequest(url, "POST", urlParams);
-    }
-
     private boolean postCreateNodeItem(HttpServletRequest req) {
         // get node to obtain ip of node.
         Node node = this.getRepository().get(this.getUrlId());
@@ -938,37 +953,75 @@ public class NodeController extends MgmtController<Node> {
             return false;
         }
 
-        String itemName = req.getParameter("itemName");
-        String itemType = req.getParameter("itemType");
-        String itemDesc = req.getParameter("itemDesc");
-        String itemIcon = req.getParameter("itemIcon");
-        String deviceRemoteId = req.getParameter("deviceRemoteId");
-        String deviceType = req.getParameter("deviceType");
-        String deviceParameter = req.getParameter("deviceParameter");
+        String apiKey = req.getParameter("apiKey");
+
+        String itemName = req.getParameter("aleoncean-item-name");
+        String itemType = req.getParameter("aleoncean-item-type");
+        String itemDesc = req.getParameter("aleoncean-item-desc");
+        String itemIcon = req.getParameter("aleoncean-item-icon");
+        String deviceRemoteId = req.getParameter("aleoncean-device-remoteid");
+        String deviceType = req.getParameter("aleoncean-device-type");
+        String deviceParameter = req.getParameter("aleoncean-device-parameter");
 
         String urlParams = "itemName=" + itemName + "&itemType=" + itemType + "&itemDesc=" + itemDesc + "&itemIcon="
                 + itemIcon + "&deviceRemoteId=" + deviceRemoteId + "&deviceType=" + deviceType + "&deviceParameter="
                 + deviceParameter;
 
-        String ret = this.doCreateAleonceanItem(node, urlParams);
-        if (ret == null || !ret.equals("ok")) {
-            this.getSession().setAttribute("errors", "Could not create aleoncean node item.");
+        String ret = this.doCreateAleonceanItem(node, urlParams, apiKey);
+        if (ret == null || !this.cleanOutputRet(ret).equals("ok")) {
+            this.getSession().setAttribute("errors", "Could not create aleoncean node item. (" + ret + ")");
+            return false;
+        }
+        // now directly create shadow Item.
+        String mqttBroker = req.getParameter("broker");
+        String mqttNodeName = node.getName();
+        String nodeItemName = itemName;
+        itemName = "Master_" + nodeItemName;
+        boolean successShadow = this.postCreateShadowItemHelper(itemName, itemType, itemDesc, itemIcon, mqttBroker,
+                mqttNodeName, nodeItemName, apiKey);
+        if (successShadow) {
+            String tmpSuccess = (String) this.getSession().getAttribute("success");
+            this.getSession().setAttribute("success", "Successfully created aleoncean node item.<br>" + tmpSuccess);
+        }
+        return successShadow;
+    }
+
+    private boolean postCreateShadowItem(HttpServletRequest req) {
+        // Shadow items are created on the master (no node needed)
+
+        String itemType = req.getParameter("node-item-type");
+        String itemDesc = req.getParameter("node-item-desc");
+        String itemIcon = req.getParameter("node-item-icon");
+        String mqttBroker = req.getParameter("broker");
+        String mqttNodeName = req.getParameter("node-name");
+        String nodeItemName = req.getParameter("node-item-name");
+        String itemName = "Master_" + nodeItemName;
+        String apiKey = req.getParameter("apiKey");
+
+        return this.postCreateShadowItemHelper(itemName, itemType, itemDesc, itemIcon, mqttBroker, mqttNodeName,
+                nodeItemName, apiKey);
+    }
+
+    private boolean postCreateShadowItemHelper(String itemName, String itemType, String itemDesc, String itemIcon,
+            String mqttBroker, String mqttNodeName, String nodeItemName, String apiKey) {
+        String urlParams = "itemName=" + itemName + "&itemType=" + itemType + "&itemDesc=" + itemDesc + "&itemIcon="
+                + itemIcon + "&mqttBroker=" + mqttBroker + "&mqttNodeName=" + mqttNodeName + "&nodeItemName="
+                + nodeItemName;
+        String ret = this.doCreateShadowItem(urlParams, apiKey);
+        if (ret == null || !this.cleanOutputRet(ret).equals("ok")) {
+            this.getSession().setAttribute("errors", "Could not create mqtt shadow item.");
             return false;
         }
 
-        this.getSession().setAttribute("success", "Successfully created aleoncean node item.");
-        return false;
+        this.getSession().setAttribute("success", "Successfully created mqtt shadow item.");
+        return true;
     }
 
-    private String doCreateAleonceanItem(Node node, String urlParams) {
-        // build url.
-        String url = node.getIP() + "/rest/compat1x_item/aleoncean?api_key=" + apiKey;
-
-        return doRequest(url, "POST", urlParams);
+    public boolean postDeleteExtension(HttpServletRequest req) {
+        return this.handleExtensionChange(req, "delete");
     }
 
     private boolean postDiscoverItem(HttpServletRequest req) {
-        // TODO
         // get node to obtain ip of node.
         Node node = this.getRepository().get(this.getUrlId());
         if (node == null) {
@@ -977,29 +1030,17 @@ public class NodeController extends MgmtController<Node> {
         }
 
         String bindingId = req.getParameter("bindingId");
+        String apiKey = req.getParameter("apiKey");
 
-        String ret = this.doDiscoverItem(node, bindingId);
+        String ret = this.doDiscoverItem(node, bindingId, apiKey);
         if (ret == null) {
-            this.getSession().setAttribute("errors", "Could not scan for node item.");
+            this.getSession().setAttribute("errors", "Could not scan for node item. (" + ret + ")");
             return false;
         }
 
-        this.getSession().setAttribute("success", "Successfully scanned for node item.");
+        this.getSession().setAttribute("warn",
+                "Started scan for node item. Refresh page and check for new node items.");
         return false;
-    }
-
-    private String doDiscoverItem(Node node, String bindingId) {
-        if (bindingId == null || bindingId.equals("")) {
-            return null;
-        }
-        // build url.
-        String url = node.getIP() + "/rest/discovery/bindings/" + bindingId + "/scan?api_key=" + apiKey;
-
-        return doRequest(url, "POST", null);
-    }
-
-    public boolean postDeleteExtension(HttpServletRequest req) {
-        return this.handleExtensionChange(req, "delete");
     }
 
     public boolean postInstallExtension(HttpServletRequest req) {
@@ -1073,13 +1114,20 @@ public class NodeController extends MgmtController<Node> {
         }
 
         String ret = this.doUpdateConfig(node, configName, urlParams, apiKey);
-        if (ret == null || !ret.equals("ok")) {
+
+        if (ret == null || !this.cleanOutputRet(ret).equals("ok")) {
             this.getSession().setAttribute("errors", "Could not update config for " + configName);
             return false;
         }
 
         this.getSession().setAttribute("success", "Successfully updated config for " + configName);
         return true;
+    }
+
+    private String cleanOutputRet(String ret) {
+        ret = ret.replaceAll("\"", "");
+        ret = ret.replaceAll("'", "");
+        return ret;
     }
 
 }
