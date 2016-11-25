@@ -16,6 +16,7 @@ import java.text.SimpleDateFormat
 import org.apache.commons.lang.StringUtils
 import org.eclipse.smarthome.binding.ntp.NtpBindingConstants
 import org.eclipse.smarthome.binding.ntp.handler.NtpHandler
+import org.eclipse.smarthome.binding.ntp.internal.NtpHandlerFactory
 import org.eclipse.smarthome.config.core.Configuration
 import org.eclipse.smarthome.core.events.Event
 import org.eclipse.smarthome.core.events.EventSubscriber
@@ -34,8 +35,10 @@ import org.eclipse.smarthome.core.thing.Thing
 import org.eclipse.smarthome.core.thing.ThingProvider
 import org.eclipse.smarthome.core.thing.ThingRegistry
 import org.eclipse.smarthome.core.thing.ThingStatusDetail
+import org.eclipse.smarthome.core.thing.ThingTypeMigrationService
 import org.eclipse.smarthome.core.thing.ThingUID
 import org.eclipse.smarthome.core.thing.binding.ThingHandler
+import org.eclipse.smarthome.core.thing.binding.ThingHandlerFactory
 import org.eclipse.smarthome.core.thing.binding.builder.ThingBuilder
 import org.eclipse.smarthome.core.thing.link.ItemChannelLink
 import org.eclipse.smarthome.core.thing.link.ManagedItemChannelLinkProvider
@@ -47,8 +50,8 @@ import org.junit.After
 import org.junit.AfterClass
 import org.junit.Before
 import org.junit.BeforeClass
-import org.junit.Test
 import org.junit.Ignore
+import org.junit.Test
 
 /**
  * OSGi tests for the {@link NtpHandler}
@@ -58,6 +61,7 @@ import org.junit.Ignore
  */
 class NtpOSGiTest extends OSGiTest {
     private static TimeZone systemTimeZone
+    private static Locale locale
 
     private EventSubscriberMock eventSubscriberMock
 
@@ -80,16 +84,16 @@ class NtpOSGiTest extends OSGiTest {
     // No bundle in ESH is exporting a package from which we can use item types as constants, so we will use String.
     private def final ACCEPTED_ITEM_TYPE_STRING = "String"
     private def final ACCEPTED_ITEM_TYPE_DATE_TIME = "DateTime"
-    
+
     enum UpdateEventType{
         HANDLE_COMMAND("handleCommand"), CHANNEL_LINKED("channelLinked");
-        
+
         private String updateEventType
-        
+
         public UpdateEventType(String updateEventType){
             this.updateEventType = updateEventType
         }
-        
+
         public String getUpdateEventType(){
             return updateEventType
         }
@@ -97,13 +101,15 @@ class NtpOSGiTest extends OSGiTest {
 
     @BeforeClass
     public static void setUpClass(){
-        /* Store the initial system time zone value,
-         so that we can restore it at the test end.*/
+        /* Store the initial system time zone and locale value,
+         so that we can restore them at the test end.*/
         systemTimeZone = TimeZone.getDefault()
+        locale = Locale.getDefault()
 
-        /* Set new default time zone,
+        /* Set new default time zone and locale,
          which will be used during the tests execution.*/
         TimeZone.setDefault(TimeZone.getTimeZone(DEFAULT_TIME_ZONE_ID))
+        Locale.setDefault(Locale.US)
     }
 
     @Before
@@ -143,13 +149,15 @@ class NtpOSGiTest extends OSGiTest {
 
     @AfterClass
     public static void tearDownClass(){
-        // Set the default time zone to its initial value.
+        // Set the default time zone and locale to their initial value.
         TimeZone.setDefault(systemTimeZone)
+        Locale.setDefault(locale)
     }
 
     @Test
     public void 'the string channel is updated with the right time zone'(){
-        def expectedTimeZone = "PDT"
+        def expectedTimeZonePDT = "PDT"
+        def expectedTimeZonePST = "PST"
 
         Configuration configuration = new Configuration()
         configuration.put(NtpBindingConstants.PROPERTY_TIMEZONE, TEST_TIME_ZONE_ID)
@@ -165,7 +173,7 @@ class NtpOSGiTest extends OSGiTest {
 
         assertThat "The string channel was not updated with the right timezone",
                 timeZoneFromItemRegistry,
-                is(equalTo(expectedTimeZone))
+                is(anyOf(equalTo(expectedTimeZonePDT), equalTo(expectedTimeZonePST)))
     }
 
     @Ignore("the dateTime channel is updated with a time from the system timezone")
@@ -211,7 +219,8 @@ class NtpOSGiTest extends OSGiTest {
 
     @Test
     public void 'if no time zone is set in the configuration, the string channel is updated with the default one'(){
-        def expectedTimeZone = "EEST"
+        def expectedTimeZoneEEST = "EEST"
+        def expectedTimeZoneEET = "EET"
 
         Configuration configuration = new Configuration()
 
@@ -227,12 +236,13 @@ class NtpOSGiTest extends OSGiTest {
 
         assertThat "The string channel was not updated with the right timezone",
                 timeZoneFromItemRegistry,
-                is(equalTo(expectedTimeZone))
+                is(anyOf(equalTo(expectedTimeZoneEEST), equalTo(expectedTimeZoneEET)))
     }
 
     @Test
     public void 'if no time zone is set in the configuration, the dateTime channel is updated with the default one'(){
-        def expectedTimeZone = "+0300"
+        Calendar systemCalendar = Calendar.getInstance()
+        String expectedTimeZone = getDateTimeChannelTimeZone(new DateTimeType(systemCalendar).toString())
 
         Configuration configuration = new Configuration()
 
@@ -245,10 +255,8 @@ class NtpOSGiTest extends OSGiTest {
          so we will rely on the format, returned by the toString() method of the DateTimeType.*/
         //FIXME: Adapt the tests if property for formatting in the dateTime channel is added.
         assertFormat(testItemState, DateTimeType.DATE_PATTERN_WITH_TZ_AND_MS)
-        /* Because of the format from the toString() method,
-         the time zone will be the last five symbols of
-         the string from the item registry(e.g. "+0300" or "-0700").*/
-        String timeZoneFromItemRegistry = testItemState.substring(testItemState.length() - expectedTimeZone.length())
+
+        String timeZoneFromItemRegistry = getDateTimeChannelTimeZone(testItemState)
 
         assertThat "The dateTime channel was not updated with the right timezone",
                 timeZoneFromItemRegistry,
@@ -375,9 +383,15 @@ class NtpOSGiTest extends OSGiTest {
 
         managedThingProvider.add(ntpThing)
 
+        NtpHandlerFactory factory
+        waitForAssert({
+            factory = getNtpHandlerFactory()
+            assertThat factory, not(null)
+        })
+
         // Wait for the NTP thing to be added to the ManagedThingProvider.
         waitForAssert({
-            ntpHandler = getService(ThingHandler,NtpHandler)
+            ntpHandler = getNtpHandler(factory)
             assertThat "Could not get NtpHandler",
                     ntpHandler,
                     is(notNullValue())
@@ -392,7 +406,7 @@ class NtpOSGiTest extends OSGiTest {
         itemRegistry.add(testItem)
 
         def ManagedItemChannelLinkProvider itemChannelLinkProvider
-        
+
         // Wait for the item , linked to the NTP thing to be added to the ManagedThingProvider.
         waitForAssert({
             itemChannelLinkProvider = getService(ManagedItemChannelLinkProvider)
@@ -401,6 +415,28 @@ class NtpOSGiTest extends OSGiTest {
                     is(notNullValue())
         })
         itemChannelLinkProvider.add(new ItemChannelLink(TEST_ITEM_NAME, channelUID))
+    }
+
+    private NtpHandlerFactory getNtpHandlerFactory() {
+        NtpHandlerFactory factory
+        waitForAssert({
+            factory = getService(ThingHandlerFactory, NtpHandlerFactory)
+            assertThat factory, is(notNullValue())
+        }, 10000)
+        factory
+    }
+
+    private NtpHandler getNtpHandler(NtpHandlerFactory factory) {
+        def thingManager = getService(ThingTypeMigrationService.class, { "org.eclipse.smarthome.core.thing.internal.ThingManager" } )
+        assertThat thingManager, not(null)
+        def handlers = thingManager.thingHandlersByFactory.get(factory)
+
+        for(ThingHandler handler : handlers) {
+            if(handler instanceof NtpHandler) {
+                return handler
+            }
+        }
+        null
     }
 
     private State getItemState(String acceptedItemType){
@@ -424,16 +460,23 @@ class NtpOSGiTest extends OSGiTest {
                         testItemState,
                         is(instanceOf(DateTimeType))
             }
-        })
+        }, 30000, 100)
 
         return testItemState
     }
 
+    private String getDateTimeChannelTimeZone(String date){
+        /* Because of the format from the toString() method,
+         the time zone will be the last five symbols of
+         the string from the item registry(e.g. "+0300" or "-0700").*/
+        return date.substring(date.length() - 5)
+    }
+
     private String getStringChannelTimeZoneFromItemRegistry(){
         String itemState = getItemState(ACCEPTED_ITEM_TYPE_STRING).toString()
-        /* This method is used only in tests for the string channel, 
-         where we have set the format for the date in advance. 
-         Because of that format, we know that the time zone will be the 
+        /* This method is used only in tests for the string channel,
+         where we have set the format for the date in advance.
+         Because of that format, we know that the time zone will be the
          last word of the string from the item registry.*/
         // FIXME: This can happen a lot easier with Java 8 date time API, so tests can be adapted, if there is an upgrade to Java 8
         String timeZoneFromItemRegistry = StringUtils.substringAfterLast(itemState, " ")

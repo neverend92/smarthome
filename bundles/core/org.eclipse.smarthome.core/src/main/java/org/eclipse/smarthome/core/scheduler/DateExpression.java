@@ -50,7 +50,7 @@ public class DateExpression extends AbstractExpression<DateExpressionPart> {
 
     public DateExpression(final String dateExpression, final Date startTime, final TimeZone zone)
             throws ParseException {
-        super(dateExpression, "", startTime, zone, 0);
+        super(dateExpression, "", startTime, zone, 0, 1);
     }
 
     @Override
@@ -172,6 +172,11 @@ public class DateExpression extends AbstractExpression<DateExpressionPart> {
         public int order() {
             return 1;
         }
+    }
+
+    @Override
+    public boolean hasFloatingStartDate() {
+        return false;
     }
 
 }

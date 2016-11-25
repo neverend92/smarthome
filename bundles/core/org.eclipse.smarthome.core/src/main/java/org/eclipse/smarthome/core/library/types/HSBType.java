@@ -8,11 +8,14 @@
 package org.eclipse.smarthome.core.library.types;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.SortedMap;
 import java.util.TreeMap;
 
+import org.eclipse.smarthome.core.library.internal.StateConverterUtil;
 import org.eclipse.smarthome.core.types.Command;
 import org.eclipse.smarthome.core.types.ComplexType;
+import org.eclipse.smarthome.core.types.Convertible;
 import org.eclipse.smarthome.core.types.PrimitiveType;
 import org.eclipse.smarthome.core.types.State;
 
@@ -24,7 +27,7 @@ import org.eclipse.smarthome.core.types.State;
  * @author Chris Jackson - Added fromRGB
  *
  */
-public class HSBType extends PercentType implements ComplexType, State, Command {
+public class HSBType extends PercentType implements ComplexType, State, Command, Convertible {
 
     private static final long serialVersionUID = 322902950356613226L;
 
@@ -209,11 +212,12 @@ public class HSBType extends PercentType implements ComplexType, State, Command 
         PercentType green = null;
         PercentType blue = null;
 
-        BigDecimal h = hue.divide(new BigDecimal(100), 10, BigDecimal.ROUND_HALF_UP);
-        BigDecimal s = saturation.divide(new BigDecimal(100));
+        BigDecimal h = hue.divide(BigDecimal.valueOf(100), 10, BigDecimal.ROUND_HALF_UP);
+        BigDecimal s = saturation.divide(BigDecimal.valueOf(100));
 
-        int h_int = h.multiply(new BigDecimal(5)).divide(new BigDecimal(3), 10, BigDecimal.ROUND_HALF_UP).intValue();
-        BigDecimal f = h.multiply(new BigDecimal(5)).divide(new BigDecimal(3), 10, BigDecimal.ROUND_HALF_UP)
+        int h_int = h.multiply(BigDecimal.valueOf(5)).divide(BigDecimal.valueOf(3), 10, BigDecimal.ROUND_HALF_UP)
+                .intValue();
+        BigDecimal f = h.multiply(BigDecimal.valueOf(5)).divide(BigDecimal.valueOf(3), 10, BigDecimal.ROUND_HALF_UP)
                 .remainder(BigDecimal.ONE);
         PercentType a = new PercentType(value.multiply(BigDecimal.ONE.subtract(s)));
         PercentType b = new PercentType(value.multiply(BigDecimal.ONE.subtract(s.multiply(f))));
@@ -253,5 +257,19 @@ public class HSBType extends PercentType implements ComplexType, State, Command 
     private int convertPercentToByte(PercentType percent) {
         return percent.value.multiply(BigDecimal.valueOf(255))
                 .divide(BigDecimal.valueOf(100), 2, BigDecimal.ROUND_HALF_UP).intValue();
+    }
+
+    @Override
+    public State as(Class<? extends State> target) {
+        if (target == OnOffType.class) {
+            // if brightness is not completely off, we consider the state to be on
+            return getBrightness().equals(PercentType.ZERO) ? OnOffType.OFF : OnOffType.ON;
+        } else if (target == DecimalType.class) {
+            return new DecimalType(getBrightness().toBigDecimal().divide(BigDecimal.valueOf(100), 8, RoundingMode.UP));
+        } else if (target == PercentType.class) {
+            return new PercentType(getBrightness().toBigDecimal());
+        } else {
+            return StateConverterUtil.defaultConversion(this, target);
+        }
     }
 }

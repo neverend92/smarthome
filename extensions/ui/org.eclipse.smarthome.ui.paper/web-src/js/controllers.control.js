@@ -5,6 +5,9 @@ angular.module('PaperUI.controllers.control', []).controller('ControlPageControl
     $scope.things = [];
     var thingTypes = [];
 
+    $scope.navigateTo = function(path) {
+        $location.path(path);
+    }
     $scope.next = function() {
         var newIndex = $scope.selectedIndex + 1;
         if (newIndex > ($scope.tabs.length - 1)) {
@@ -198,7 +201,7 @@ angular.module('PaperUI.controllers.control', []).controller('ControlPageControl
 
         if (item.type === 'DateTime') {
             var date = new Date(item.state);
-            return $filter('date')(date, "dd.MM.yyyy hh:mm:ss");
+            return $filter('date')(date, "dd.MM.yyyy HH:mm:ss");
         } else if (!item.stateDescription || !item.stateDescription.pattern) {
             return state;
         } else {
@@ -579,7 +582,7 @@ angular.module('PaperUI.controllers.control', []).controller('ControlPageControl
             var bbox = (longitude - 0.01) + ',' + (latitude - 0.01) + ',' + (longitude + 0.01) + ',' + (latitude + 0.01);
             var marker = latitude + ',' + longitude;
             $scope.formattedState = latitude + '°N ' + longitude + '°E';
-            $scope.url = $sce.trustAsResourceUrl('http://www.openstreetmap.org/export/embed.html?bbox=' + bbox + '&marker=' + marker);
+            $scope.url = $sce.trustAsResourceUrl('https://www.openstreetmap.org/export/embed.html?bbox=' + bbox + '&marker=' + marker);
         } else {
             $scope.formattedState = '- °N - °E';
         }

@@ -1,4 +1,4 @@
-angular.module('PaperUI.controllers', [ 'PaperUI.constants' ]).controller('BodyController', function($rootScope, $scope, $http, eventService, toastService, discoveryResultRepository, thingTypeRepository, bindingRepository, restConfig) {
+angular.module('PaperUI.controllers', [ 'PaperUI.constants' ]).controller('BodyController', function($rootScope, $scope, $http, $location, eventService, toastService, discoveryResultRepository, thingTypeRepository, bindingRepository, restConfig) {
     $scope.scrollTop = 0;
     $(window).scroll(function() {
         $scope.$apply(function(scope) {
@@ -35,15 +35,43 @@ angular.module('PaperUI.controllers', [ 'PaperUI.constants' ]).controller('BodyC
         return uuid;
     };
 
-    var numberOfInboxEntries = -1;
+    var numberOfInboxEntries = -1, prevAudioUrl = '';
     eventService.onEvent('smarthome/inbox/*/added', function(topic, discoveryResult) {
         toastService.showDefaultToast('New Inbox Entry: ' + discoveryResult.label, 'Show Inbox', 'inbox/search');
     });
     eventService.onEvent('smarthome/webaudio/playurl', function(topic, audioUrl) {
-        if (audioUrl) {
-            var audio = new Audio(audioUrl);
-            audio.load();
-            audio.play();
+        if (prevAudioUrl !== audioUrl) {
+            var context;
+            window.AudioContext = window.AudioContext || window.webkitAudioContext;
+            if (typeof (window.AudioContext) != "undefined") {
+                try {
+                    context = new AudioContext();
+                    var audioBuffer = null;
+                    $http({
+                        url : audioUrl,
+                        method : 'GET',
+                        responseType : 'arraybuffer'
+                    }).then(function(response) {
+                        context.decodeAudioData(response.data, function(buffer) {
+                            audioBuffer = buffer;
+                            var source = context.createBufferSource();
+                            source.buffer = buffer;
+                            source.connect(context.destination);
+                            source.onended = function() {
+                                context.close();
+                            }
+                            source.start(0);
+                        });
+                    });
+                } catch (e) {
+                    if (context) {
+                        context.close();
+                    }
+                }
+            } else {
+                angular.element("#audioSink").attr('src', audioUrl);
+            }
+            prevAudioUrl = audioUrl;
         }
     });
     eventService.onEvent('smarthome/items/*/state', function(topic, stateObject) {
@@ -119,7 +147,6 @@ angular.module('PaperUI.controllers', [ 'PaperUI.constants' ]).controller('BodyC
         }
     });
 
-    $scope.eventSourceDefined = typeof (EventSource) !== "undefined";
     discoveryResultRepository.getAll();
     bindingRepository.getAll();
 }).controller('PreferencesPageController', function($rootScope, $scope, $window, $location, toastService) {

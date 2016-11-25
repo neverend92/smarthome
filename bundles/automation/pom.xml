@@ -20,11 +20,13 @@
     <module>org.eclipse.smarthome.automation.commands</module>
     <module>org.eclipse.smarthome.automation.parser.gson</module>
     <module>org.eclipse.smarthome.automation.providers</module>
+    <module>org.eclipse.smarthome.automation.provider.file</module>
     <module>org.eclipse.smarthome.automation.core</module>
     <module>org.eclipse.smarthome.automation.core.test</module>
     <module>org.eclipse.smarthome.automation.sample.extension.json</module>
     <module>org.eclipse.smarthome.automation.module.core</module>
     <module>org.eclipse.smarthome.automation.module.core.test</module>
+    <module>org.eclipse.smarthome.automation.module.media</module>
     <module>org.eclipse.smarthome.automation.module.timer</module>
     <module>org.eclipse.smarthome.automation.module.timer.test</module>
     <module>org.eclipse.smarthome.automation.module.script</module>
