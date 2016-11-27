@@ -53,6 +53,11 @@ public class AuthFilter implements ContainerRequestFilter {
             String apiKey = queryParameters.getFirst("api_key");
             AuthenticationProvider authProvider = AuthenticationProviderImpl.getInstace();
             Authentication auth = authProvider.authenticateToken(apiKey);
+            if (auth == null) {
+                ctx.abortWith(Response.status(Response.Status.UNAUTHORIZED)
+                        .entity("{\"error\":{\"code\":401,\"message\":\"Authentication needed to access resource.\"}}.")
+                        .build());
+            }
 
             // build requested url.
             String reqUrl = requestMethod + " /rest/" + path;

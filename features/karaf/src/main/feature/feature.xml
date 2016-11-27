@@ -375,6 +375,23 @@
     <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.paper/${project.version}</bundle>
   </feature>
 
+	<feature name="esh-ui-mgmt" version="${project.version}">
+    <feature>esh-base</feature>
+    <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.mgmt/${project.version}</bundle>
+  </feature>
+
+  <feature name="esh-ui-usermgmt" version="${project.version}">
+    <feature>esh-base</feature>
+		<feature>esh-ui-mgmt</feature>
+    <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.usermgmt/${project.version}</bundle>
+  </feature>
+
+  <feature name="esh-ui-nodemgmt" version="${project.version}">
+    <feature>esh-base</feature>
+		<feature>esh-ui-mgmt</feature>
+    <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.nodemgmt/${project.version}</bundle>
+  </feature>
+
   <feature name="esh-ui-icon" version="${project.version}">
     <feature>esh-base</feature>
     <bundle>mvn:org.eclipse.smarthome.ui/org.eclipse.smarthome.ui.icon/${project.version}</bundle>
