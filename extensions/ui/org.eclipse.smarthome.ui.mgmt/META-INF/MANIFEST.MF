@@ -16,4 +16,3 @@ Import-Package: javax.servlet,
 Export-Package: org.eclipse.smarthome.ui.mgmt.internal
 Bundle-SymbolicName: org.eclipse.smarthome.ui.mgmt
 Bundle-RequiredExecutionEnvironment: JavaSE-1.7
-Service-Component: OSGI-INF/*.xml

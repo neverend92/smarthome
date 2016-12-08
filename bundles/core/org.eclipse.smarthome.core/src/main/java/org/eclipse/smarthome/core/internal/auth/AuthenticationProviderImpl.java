@@ -110,6 +110,10 @@ public class AuthenticationProviderImpl implements AuthenticationProvider {
             return null;
         }
 
+        if (token.getExpiresTimestamp() < this.getCurrentTimestamp()) {
+            return null;
+        }
+
         User user = this.userRepository.get(token.getUsername());
 
         if (user == null) {

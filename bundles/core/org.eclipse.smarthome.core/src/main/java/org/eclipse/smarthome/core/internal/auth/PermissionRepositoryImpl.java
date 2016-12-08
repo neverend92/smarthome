@@ -68,7 +68,15 @@ public class PermissionRepositoryImpl extends RepositoryImpl<Permission> {
             }
 
             // access for subfolders
-            if (name.startsWith(permission.getReqUrl().replaceAll("index.html", ""))) {
+            String compare = permission.getReqUrl();
+            compare = compare.replaceAll("ui/index.html", "ui/");
+            compare = compare.replaceAll("doc/index.html", "doc/");
+            compare = compare.replaceAll("usermgmt/app", "usermgmt/");
+            compare = compare.replaceAll("nodemgmt/app", "nodemgmt/");
+            compare = compare.replaceAll("classic/app", "classicui/");
+            compare = compare.replaceAll("basicui/app", "basicui/");
+            compare = compare.replaceAll("start/index", "start/");
+            if (name.startsWith(compare)) {
                 return permission;
             }
         }

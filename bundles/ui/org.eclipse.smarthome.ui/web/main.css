@@ -83,11 +83,13 @@ footer a:focus {
 .btn-primary {
     background-color: #ff6600;
     border-color: #d95700;
+    color: #fff;
 }
 .btn-primary:hover,
 .btn-primary:focus {
     background-color: #d95700;
     border-color: #b84a00;
+    color: #fff;
 }
 
 a,

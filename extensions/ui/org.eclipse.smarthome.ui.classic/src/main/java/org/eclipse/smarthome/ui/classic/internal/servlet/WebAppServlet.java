@@ -19,9 +19,11 @@ import javax.servlet.ServletException;
 import javax.servlet.ServletRequest;
 import javax.servlet.ServletResponse;
 import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
 
 import org.eclipse.emf.common.util.EList;
-import org.eclipse.smarthome.core.auth.Authentication;
+import org.eclipse.smarthome.core.auth.AuthenticatedHttpContext;
+import org.eclipse.smarthome.core.auth.AuthenticatedSession;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.Item;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
@@ -109,7 +111,10 @@ public class WebAppServlet extends BaseServlet {
         logger.debug("Servlet request received!");
 
         HttpServletRequest httpReq = (HttpServletRequest) req;
-        this.renderer.setAuthentication((Authentication) httpReq.getSession().getAttribute("auth"));
+        HttpServletResponse httpRes = (HttpServletResponse) res;
+
+        String authSessionId = AuthenticatedHttpContext.getAuthSessionId(httpReq, httpRes);
+        this.renderer.setAuthentication(AuthenticatedSession.getInstance().get(authSessionId));
 
         // read request parameters
         String sitemapName = req.getParameter("sitemap");

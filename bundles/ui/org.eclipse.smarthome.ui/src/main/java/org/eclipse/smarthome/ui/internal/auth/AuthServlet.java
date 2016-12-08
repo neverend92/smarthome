@@ -9,6 +9,8 @@ import javax.servlet.http.HttpServletResponse;
 import javax.servlet.http.HttpSession;
 
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.eclipse.smarthome.core.auth.AuthenticatedHttpContext;
+import org.eclipse.smarthome.core.auth.AuthenticatedSession;
 import org.eclipse.smarthome.core.auth.Authentication;
 import org.eclipse.smarthome.core.internal.auth.AuthenticationProviderImpl;
 import org.slf4j.Logger;
@@ -36,23 +38,22 @@ public class AuthServlet extends HttpServlet {
 
         String innerContent = "";
 
-        HttpSession session = req.getSession();
-        // set session timeout to 30min.
-        if (session.isNew()) {
-            session.setMaxInactiveInterval(30 * 60);
-        }
+        AuthenticatedSession authSession = AuthenticatedSession.getInstance();
+        String authSessionId = AuthenticatedHttpContext.getAuthSessionId(req, res);
 
         // check if logout action was triggered.
         String action = req.getParameter("action");
         if (action != null && action.equals("logout")) {
-            session.removeAttribute("auth");
+            authSession.remove(authSessionId);
             logger.debug("Logout User");
             res.sendRedirect("/");
             return;
         }
 
         // check for authenticated user.
-        Authentication auth = (Authentication) session.getAttribute("auth");
+        Authentication auth = authSession.get(authSessionId);
+
+        HttpSession session = req.getSession();
 
         if (auth == null) {
             // show login form.
@@ -89,15 +90,12 @@ public class AuthServlet extends HttpServlet {
         logger.debug("Received incoming auth (POST) request {}", req);
 
         HttpSession session = req.getSession();
-        // set session timeout to 30min.
-        if (session.isNew()) {
-            session.setMaxInactiveInterval(30 * 60);
-        }
 
         String username = req.getParameter("username");
         String password = req.getParameter("password");
 
-        logger.debug("### " + username + ":" + password);
+        AuthenticatedSession authSession = AuthenticatedSession.getInstance();
+        String authSessionId = AuthenticatedHttpContext.getAuthSessionId(req, res);
 
         // do auth check...
         UsernamePasswordCredentials creds = new UsernamePasswordCredentials(username, password);
@@ -109,7 +107,7 @@ public class AuthServlet extends HttpServlet {
             res.sendRedirect("/auth/login");
             return;
         } else {
-            session.setAttribute("auth", auth);
+            authSession.put(authSessionId, auth);
 
             // check for last requested page.
             Object last_uri = session.getAttribute("last_uri");
