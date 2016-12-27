@@ -990,22 +990,23 @@ public class ItemUIRegistryImpl implements ItemUIRegistry {
      */
     @Override
     public boolean getVisiblity(Widget w, Authentication auth) {
-        Item item;
+        if (w.getItem() != null) {
 
-        try {
-            item = itemRegistry.getItem(w.getItem());
+            try {
+                Item item = itemRegistry.getItem(w.getItem());
 
-            if (!itemRegistry.isItemAllowed(item, auth)) {
-                logger.debug("### Item {} was not displayed", item.getName());
-                return false;
+                if (!itemRegistry.isItemAllowed(item, auth)) {
+                    logger.debug("### Item {} was not displayed", item.getName());
+                    return false;
+                }
+
+            } catch (ItemNotFoundException e) {
+                logger.error("Cannot retrieve visibility item {} for widget {}", w.getItem(),
+                        w.eClass().getInstanceTypeName());
+
+                // Default to visible!
+                return true;
             }
-
-        } catch (ItemNotFoundException e) {
-            logger.error("Cannot retrieve visibility item {} for widget {}", w.getItem(),
-                    w.eClass().getInstanceTypeName());
-
-            // Default to visible!
-            return true;
         }
 
         return this.getVisiblity(w);

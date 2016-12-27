@@ -3,6 +3,7 @@ package org.eclipse.smarthome.ui.internal.auth;
 import java.io.IOException;
 
 import javax.servlet.ServletException;
+import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
@@ -85,6 +86,21 @@ public class AuthServlet extends HttpServlet {
         session.removeAttribute("username");
     }
 
+    public static String getLastUri(HttpServletRequest req, HttpServletResponse res) {
+        String lastUri = null;
+        Cookie[] cookies = req.getCookies();
+        if (cookies != null) {
+            for (Cookie cookie : cookies) {
+                if (cookie.getName().equals("last_uri")) {
+                    lastUri = cookie.getValue();
+                    break;
+                }
+            }
+        }
+
+        return lastUri;
+    }
+
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse res) throws ServletException, IOException {
         logger.debug("Received incoming auth (POST) request {}", req);
@@ -109,14 +125,13 @@ public class AuthServlet extends HttpServlet {
         } else {
             authSession.put(authSessionId, auth);
 
-            // check for last requested page.
-            Object last_uri = session.getAttribute("last_uri");
+            String last_uri = getLastUri(req, res);
 
             // if page was set, redirect to this page.
             // else redirect to default root page.
             if (last_uri != null) {
-                session.removeAttribute("last_uri");
-                res.sendRedirect(last_uri.toString());
+                // session.removeAttribute("last_uri");
+                res.sendRedirect(last_uri);
             } else {
                 res.sendRedirect("/");
             }

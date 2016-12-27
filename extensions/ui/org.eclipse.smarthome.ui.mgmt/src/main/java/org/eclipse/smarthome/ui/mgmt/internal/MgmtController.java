@@ -444,7 +444,7 @@ public class MgmtController<E extends DTO> {
      * @param object
      * @return
      */
-    private boolean postAdd(E object) {
+    protected boolean postAdd(E object) {
         if (object == null) {
             return false;
         }

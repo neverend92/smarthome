@@ -8,5 +8,15 @@
         "OUTSIDE"
       ]
     }
+  },
+  "Key1": {
+    "class": "org.eclipse.smarthome.storage.json.JsonStorageServiceOSGiTest$PersistedItem",
+    "value": {
+      "itemType": "String",
+      "groupNames": [
+        "LIGHT",
+        "GROUND_FLOOR"
+      ]
+    }
   }
 }

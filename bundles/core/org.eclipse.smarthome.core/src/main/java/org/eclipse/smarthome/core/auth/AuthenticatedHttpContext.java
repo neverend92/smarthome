@@ -7,7 +7,6 @@ import java.util.UUID;
 import javax.servlet.http.Cookie;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 
 import org.eclipse.smarthome.core.internal.auth.AuthenticationProviderImpl;
 import org.osgi.framework.Bundle;
@@ -87,7 +86,7 @@ public class AuthenticatedHttpContext implements HttpContext {
 
         AuthenticatedSession authSession = AuthenticatedSession.getInstance();
 
-        HttpSession session = req.getSession();
+        // HttpSession session = req.getSession();
 
         // request url
         String reqUrl = req.getRequestURI();
@@ -104,7 +103,11 @@ public class AuthenticatedHttpContext implements HttpContext {
             if (reqQuery != null) {
                 lastUri += "?" + reqQuery;
             }
-            session.setAttribute("last_uri", lastUri);
+            // session.setAttribute("last_uri", lastUri);
+            Cookie lastUriCookie = new Cookie("last_uri", lastUri);
+            lastUriCookie.setPath("/");
+            res.addCookie(lastUriCookie);
+
             // res.sendRedirect("/auth/login");
             res.setHeader("Location", "/auth/login");
             res.setStatus(HttpServletResponse.SC_FOUND);

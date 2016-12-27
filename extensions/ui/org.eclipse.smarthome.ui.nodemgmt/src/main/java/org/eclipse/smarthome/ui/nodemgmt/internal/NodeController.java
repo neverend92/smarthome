@@ -922,6 +922,12 @@ public class NodeController extends MgmtController<Node> {
         return new UsernamePasswordCredentials(a_credentials[0], a_credentials[1]);
     }
 
+    @Override
+    public boolean postAdd(Node node) {
+        node.setExtensions(new String[0]);
+        return super.postAdd(node);
+    }
+
     /*
      * (non-Javadoc)
      *
