@@ -839,7 +839,11 @@ public class NodeController extends MgmtController<Node> {
 
         ret = this.doAuthCheck(node);
 
-        this.nodeStatus += this.getConsoleStatusLine("ok", "node is online");
+        if (ret != null && ret != "") {
+            this.nodeStatus += this.getConsoleStatusLine("ok", "node is online");
+        } else {
+            this.nodeStatus += this.getConsoleStatusLine("error", "node is offline");
+        }
 
         if (ret == null) {
             this.nodeStatus += this.getConsoleStatusLine("error", "credentials are invalid");

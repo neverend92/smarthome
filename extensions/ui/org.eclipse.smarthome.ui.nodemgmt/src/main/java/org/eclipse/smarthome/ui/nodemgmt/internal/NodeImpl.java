@@ -110,7 +110,10 @@ public class NodeImpl implements Node {
      */
     @Override
     public String[] getExtensions() {
-        return this.extensions;
+        if (this.extensions != null) {
+            return this.extensions;
+        }
+        return new String[0];
     }
 
     /*
