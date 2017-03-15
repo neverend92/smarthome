@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,7 +12,7 @@ import java.util.Locale;
 import org.eclipse.smarthome.core.items.Item;
 
 /**
- * A persistence service which can be used to store data from openHAB.
+ * A persistence service which can be used to store data from Eclipse SmartHome.
  * This must not necessarily be a local database, a persistence service
  * can also be cloud-based or a simply data-export facility (e.g.
  * for sending data to an IoT (Internet of Things) service.

@@ -1,18 +1,10 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
-/**
-* Copyright (c) 2010-2013, openHAB.org and others.
-*
-* All rights reserved. This program and the accompanying materials
-* are made available under the terms of the Eclipse Public License v1.0
-* which accompanies this distribution, and is available at
-* http://www.eclipse.org/legal/epl-v10.html
-*/
 package org.eclipse.smarthome.io.rest.core.persistence;
 
 import java.util.ArrayList;
@@ -21,6 +13,7 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Locale;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -35,6 +28,7 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.Response;
 import javax.ws.rs.core.Response.Status;
 
+import org.eclipse.smarthome.core.auth.Role;
 import org.eclipse.smarthome.core.items.Item;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
 import org.eclipse.smarthome.core.items.ItemRegistry;
@@ -106,6 +100,7 @@ public class PersistenceResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.ADMIN })
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Gets a list of persistence services.", response = String.class, responseContainer = "List")
     @ApiResponses(value = @ApiResponse(code = 200, message = "OK"))
@@ -119,6 +114,7 @@ public class PersistenceResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.ADMIN })
     @Path("/items")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Gets a list of items available via a specific persistence service.", response = String.class, responseContainer = "List")
@@ -130,6 +126,7 @@ public class PersistenceResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Path("/items/{itemname: [a-zA-Z_0-9]*}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Gets item persistence data from the persistence service.", response = ItemHistoryDTO.class)
@@ -152,6 +149,7 @@ public class PersistenceResource implements SatisfiableRESTResource {
     }
 
     @DELETE
+    @RolesAllowed({ Role.ADMIN })
     @Path("/items/{itemname: [a-zA-Z_0-9]*}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Delete item data from a specific persistence service.", response = String.class, responseContainer = "List")
@@ -170,6 +168,7 @@ public class PersistenceResource implements SatisfiableRESTResource {
     }
 
     @PUT
+    @RolesAllowed({ Role.ADMIN })
     @Path("/items/{itemname: [a-zA-Z_0-9]*}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Stores item persistence data into the persistence service.", response = ItemHistoryDTO.class)
@@ -304,7 +303,7 @@ public class PersistenceResource implements SatisfiableRESTResource {
             filter.setOrdering(Ordering.ASCENDING);
             result = qService.query(filter);
             if (result != null && result.iterator().hasNext()) {
-                dto.addData(result.iterator().next().getTimestamp().getTime(), result.iterator().next().getState());
+                dto.addData(dateTimeEnd.getTime(), result.iterator().next().getState());
                 quantity++;
             }
         }

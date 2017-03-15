@@ -38,7 +38,7 @@ The `ThingManager` mediates the communication between a `Thing` and a `ThingHand
 
 The `ThingManager` determines if the `Thing` is initializable or not. A `Thing` is considered as *initializable* if all *required* configuration parameters (cf. property *parameter.required* in [Configuration Description](xml-reference.html)) are available. If so, the method `ThingHandler.initialize()` is called.
 
-Only Things with status (cf. [Thing Status](../../concepts/things.html#thing-status)) *ONLINE* or *OFFLINE* are considered as *initialized* by the framework. To achieve that, the status must be reported to the framework by a callback. Furthermore, the framework expects `initialize()` to be non-blocking and to return quickly. For longer running initializations, the implementation has to take care of scheduling a separate job which must set the status at the end.
+Only Things with status (cf. [Thing Status](../../concepts/things.html#thing-status)) *UNKNOWN*, *ONLINE* or *OFFLINE* are considered as *initialized* by the framework and therefore it is the handler's duty to assign one of these states sooner or later. To achieve that, the status must be reported to the framework via the callback or `BaseThingHandler.updateStatus(...)` for convenience. Furthermore, the framework expects `initialize()` to be non-blocking and to return quickly. For longer running initializations, the implementation has to take care of scheduling a separate job which must guarantee to set the status eventually. Also, please note that the framework expects the `initialize()` method to handle anticipated error situations gracefully and set the thing to *OFFLINE* with the corresponding status detail (e.g. *COMMUNICATION_ERROR* or *CONFIGURATION_ERROR* including a meaningful description) instead of throwing exceptions. 
 
 If the `Thing` is not initializable the configuration can be updated via `ThingHandler.handleConfigurationUpdate(Map)`. The binding has to notify the `ThingManager` about the updated configuration by a callback. The `ThingManager` tries to initialize the `ThingHandler` resp. `Thing` again.
 
@@ -222,6 +222,8 @@ If configuration needs to be sent to devices, this method should be overridden a
 
 It can happen that the binding wants to update the configuration or even the whole structure of a thing. If the `BaseThingHandler` class is used, it provides some helper methods for modifying the thing.
 
+Please note that not all thing providers are writable. Therefore bindings must not rely on any thing changes to be persisted. 
+
 ### Updating the Configuration
 
 Usually the configuration is maintained by the user and the binding is informed about the updated configuration. But if the configuration can also be changed in the external system, the binding should reflect this change and notify the framework about it.
@@ -268,8 +270,6 @@ protected void thingStructureChanged() {
     updateThing(thingBuilder.build());
 }
 ```
-
-As the builder does not support removing a channel, the developer has top copy the existing channels into a modifiable list and remove the channel in this list. The list can be passed as an argument to the `withChannels()` method of the `ThingBuilder`, which overrides the complete list of channels.
 
 ## Handling Thing Removal
 

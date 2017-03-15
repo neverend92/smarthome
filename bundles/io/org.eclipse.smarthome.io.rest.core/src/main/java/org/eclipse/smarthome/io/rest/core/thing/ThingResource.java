@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -8,6 +8,8 @@
 package org.eclipse.smarthome.io.rest.core.thing;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -19,6 +21,8 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Set;
 
+import javax.annotation.security.RolesAllowed;
+import javax.ws.rs.BadRequestException;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -44,6 +48,7 @@ import org.eclipse.smarthome.config.core.Configuration;
 import org.eclipse.smarthome.config.core.status.ConfigStatusInfo;
 import org.eclipse.smarthome.config.core.status.ConfigStatusService;
 import org.eclipse.smarthome.config.core.validation.ConfigValidationException;
+import org.eclipse.smarthome.core.auth.Role;
 import org.eclipse.smarthome.core.items.GenericItem;
 import org.eclipse.smarthome.core.items.ItemFactory;
 import org.eclipse.smarthome.core.items.ItemNotFoundException;
@@ -122,6 +127,7 @@ public class ThingResource implements SatisfiableRESTResource {
      * @return Response holding the newly created Thing or error information
      */
     @POST
+    @RolesAllowed({ Role.ADMIN })
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Creates a new thing and adds it to the registry.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -151,7 +157,8 @@ public class ThingResource implements SatisfiableRESTResource {
         }
 
         // turn the ThingDTO's configuration into a Configuration
-        Configuration configuration = new Configuration(normalizeConfiguration(thingBean.configuration, thingTypeUID));
+        Configuration configuration = new Configuration(
+                normalizeConfiguration(thingBean.configuration, thingTypeUID, thingUID));
 
         Thing thing = thingRegistry.createThingOfType(thingTypeUID, thingUID, bridgeUID, thingBean.label,
                 configuration);
@@ -188,6 +195,7 @@ public class ThingResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all available things.", response = EnrichedThingDTO.class, responseContainer = "Set")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
@@ -200,6 +208,7 @@ public class ThingResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{thingUID}")
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Gets thing by UID.")
@@ -228,6 +237,7 @@ public class ThingResource implements SatisfiableRESTResource {
      * @return Response with status/error information
      */
     @POST
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{thingUID}/channels/{channelId}/link")
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Links item to a channel. Creates item if such does not exist yet.")
@@ -283,9 +293,12 @@ public class ThingResource implements SatisfiableRESTResource {
      * @return Response with status/error information
      */
     @DELETE
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{thingUID}")
     @ApiOperation(value = "Removes a thing from the registry. Set \'force\' to __true__ if you want the thing te be removed immediately.")
-    @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
+    @ApiResponses(value = { @ApiResponse(code = 202, message = "ACCEPTED for asynchronous deletion."),
+            @ApiResponse(code = 200, message = "OK, was deleted."),
+            @ApiResponse(code = 409, message = "CONFLICT, Thing could not be deleted because it's not managed."),
             @ApiResponse(code = 404, message = "Thing not found.") })
     public Response remove(@HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) @ApiParam(value = "language") String language,
             @PathParam("thingUID") @ApiParam(value = "thingUID") String thingUID,
@@ -336,6 +349,7 @@ public class ThingResource implements SatisfiableRESTResource {
      * @return Response with status/error information
      */
     @DELETE
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{thingUID}/channels/{channelId}/link")
     @ApiOperation(value = "Unlinks item from a channel.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
@@ -367,6 +381,7 @@ public class ThingResource implements SatisfiableRESTResource {
      * @throws IOException
      */
     @PUT
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{thingUID}")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Updates a thing.")
@@ -398,7 +413,8 @@ public class ThingResource implements SatisfiableRESTResource {
         }
 
         // check configuration
-        thingBean.configuration = normalizeConfiguration(thingBean.configuration, thing.getThingTypeUID());
+        thingBean.configuration = normalizeConfiguration(thingBean.configuration, thing.getThingTypeUID(),
+                thing.getUID());
 
         thing = ThingHelper.merge(thing, thingBean);
 
@@ -421,6 +437,7 @@ public class ThingResource implements SatisfiableRESTResource {
      * @throws IOException
      */
     @PUT
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{thingUID}/config")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Updates thing's configuration.")
@@ -429,7 +446,7 @@ public class ThingResource implements SatisfiableRESTResource {
     public Response updateConfiguration(@HeaderParam(HttpHeaders.ACCEPT_LANGUAGE) String language,
             @PathParam("thingUID") @ApiParam(value = "thing") String thingUID,
             @ApiParam(value = "configuration parameters") Map<String, Object> configurationParameters)
-                    throws IOException {
+            throws IOException {
         final Locale locale = LocaleUtil.getLocale(language);
 
         ThingUID thingUIDObject = new ThingUID(thingUID);
@@ -457,8 +474,9 @@ public class ThingResource implements SatisfiableRESTResource {
             // note that we create a Configuration instance here in order to
             // have normalized types
             thingRegistry.updateConfiguration(thingUIDObject,
-                    new Configuration(normalizeConfiguration(configurationParameters, thing.getThingTypeUID()))
-                            .getProperties());
+                    new Configuration(
+                            normalizeConfiguration(configurationParameters, thing.getThingTypeUID(), thing.getUID()))
+                                    .getProperties());
         } catch (ConfigValidationException ex) {
             logger.debug("Config description validation exception occured for thingUID {} - Messages: {}", thingUID,
                     ex.getValidationMessages());
@@ -473,6 +491,7 @@ public class ThingResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Path("/{thingUID}/config/status")
     @ApiOperation(value = "Gets thing's config status.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -647,7 +666,8 @@ public class ThingResource implements SatisfiableRESTResource {
         this.thingTypeRegistry = null;
     }
 
-    private Map<String, Object> normalizeConfiguration(Map<String, Object> properties, ThingTypeUID thingTypeUID) {
+    private Map<String, Object> normalizeConfiguration(Map<String, Object> properties, ThingTypeUID thingTypeUID,
+            ThingUID thingUID) {
         if (properties == null || properties.isEmpty()) {
             return properties;
         }
@@ -657,12 +677,29 @@ public class ThingResource implements SatisfiableRESTResource {
             return properties;
         }
 
-        ConfigDescription configDesc = configDescRegistry.getConfigDescription(thingType.getConfigDescriptionURI());
-        if (configDesc == null) {
+        List<ConfigDescription> configDescriptions = new ArrayList<>(2);
+        ConfigDescription typeConfigDesc = configDescRegistry.getConfigDescription(thingType.getConfigDescriptionURI());
+        if (typeConfigDesc != null) {
+            configDescriptions.add(typeConfigDesc);
+        }
+        ConfigDescription thingConfigDesc = configDescRegistry.getConfigDescription(getConfigDescriptionURI(thingUID));
+        if (thingConfigDesc != null) {
+            configDescriptions.add(thingConfigDesc);
+        }
+        if (configDescriptions.isEmpty()) {
             return properties;
         }
 
-        return ConfigUtil.normalizeTypes(properties, configDesc);
+        return ConfigUtil.normalizeTypes(properties, configDescriptions);
+    }
+
+    private URI getConfigDescriptionURI(ThingUID thingUID) {
+        String uriString = "thing:" + thingUID;
+        try {
+            return new URI(uriString);
+        } catch (URISyntaxException e) {
+            throw new BadRequestException("Invalid URI syntax: " + uriString);
+        }
     }
 
     @Override

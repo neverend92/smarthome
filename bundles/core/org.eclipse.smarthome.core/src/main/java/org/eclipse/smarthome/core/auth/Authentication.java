@@ -65,4 +65,5 @@ public interface Authentication {
      * @param username
      */
     public void setUsername(String username);
+
 }

@@ -7,6 +7,7 @@
  */
 package org.eclipse.smarthome.automation.core.internal.composite;
 
+import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,8 +24,9 @@ import org.eclipse.smarthome.automation.type.CompositeConditionType;
  * @author Yordan Mihaylov - Initial Contribution
  *
  */
-public class CompositeConditionHandler extends
-        AbstractCompositeModuleHandler<Condition, CompositeConditionType, ConditionHandler>implements ConditionHandler {
+public class CompositeConditionHandler
+        extends AbstractCompositeModuleHandler<Condition, CompositeConditionType, ConditionHandler>
+        implements ConditionHandler {
 
     public CompositeConditionHandler(Condition condition, CompositeConditionType mt,
             LinkedHashMap<Condition, ConditionHandler> mapModuleToHandler, String ruleUID) {
@@ -37,11 +39,11 @@ public class CompositeConditionHandler extends
      * @see org.eclipse.smarthome.automation.handler.ConditionHandler#isSatisfied(java.util.Map)
      */
     @Override
-    public boolean isSatisfied(Map<String, ?> context) {
-        List<Condition> children = moduleType.getChildren();
+    public boolean isSatisfied(Map<String, Object> context) {
+        List<Condition> children = getChildren();
         Map<String, Object> compositeContext = getCompositeContext(context);
         for (Condition child : children) {
-            Map<String, Object> childContext = getChildContext(child, compositeContext);
+            Map<String, Object> childContext = Collections.unmodifiableMap(getChildContext(child, compositeContext));
             ConditionHandler childHandler = moduleHandlerMap.get(child);
             boolean isSatisfied = childHandler.isSatisfied(childContext);
             if (!isSatisfied) {
@@ -52,7 +54,7 @@ public class CompositeConditionHandler extends
     }
 
     @Override
-    public void dispose() {
-        super.dispose();
+    protected List<Condition> getChildren() {
+        return moduleType.getChildren();
     }
 }

@@ -15,6 +15,8 @@
 			<channel id="alarmrunning" typeId="alarmrunning" />
 			<channel id="control" typeId="control" />
 			<channel id="currentalbum" typeId="currentalbum" />
+			<channel id="currentalbumart" typeId="currentalbumart" />
+			<channel id="currentalbumarturl" typeId="currentalbumarturl" />
 			<channel id="currentartist" typeId="currentartist" />
 			<channel id="currenttitle" typeId="currenttitle" />
 			<channel id="currenttrack" typeId="currenttrack" />
@@ -46,6 +48,8 @@
 			<channel id="zonegroupid" typeId="zonegroupid" />
 			<channel id="zonename" typeId="zonename" />
 			<channel id="coordinator" typeId="coordinator" />
+			<channel id="linein" typeId="linein" />
+			<channel id="playlinein" typeId="playlinein" />
 			<channel id="sleeptimer" typeId="sleeptimer" />
 			<channel id="currenttransporturi" typeId="currenttransporturi" />
 			<channel id="currenttrackuri" typeId="currenttrackuri" />

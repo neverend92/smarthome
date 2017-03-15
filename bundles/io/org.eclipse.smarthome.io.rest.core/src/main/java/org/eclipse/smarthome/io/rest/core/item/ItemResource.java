@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,6 +14,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Set;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.DELETE;
 import javax.ws.rs.DefaultValue;
@@ -34,7 +35,11 @@ import javax.ws.rs.core.Response.ResponseBuilder;
 import javax.ws.rs.core.Response.Status;
 import javax.ws.rs.core.UriInfo;
 
+<<<<<<< HEAD
 import org.eclipse.smarthome.core.auth.Authentication;
+=======
+import org.eclipse.smarthome.core.auth.Role;
+>>>>>>> refs/remotes/origin/master
 import org.eclipse.smarthome.core.events.EventPublisher;
 import org.eclipse.smarthome.core.internal.auth.AuthenticationProviderImpl;
 import org.eclipse.smarthome.core.items.ActiveItem;
@@ -139,6 +144,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Produces(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Get all available items.", response = EnrichedItemDTO.class, responseContainer = "List")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK") })
@@ -157,6 +163,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @GET
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}")
     @Produces({ MediaType.APPLICATION_JSON })
     @ApiOperation(value = "Gets a single item.", response = EnrichedItemDTO.class)
@@ -192,6 +199,7 @@ public class ItemResource implements SatisfiableRESTResource {
      * @return
      */
     @GET
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}/state")
     @Produces(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Gets the state of an item.")
@@ -214,7 +222,7 @@ public class ItemResource implements SatisfiableRESTResource {
 
             // we cannot use JSONResponse.createResponse() bc. MediaType.TEXT_PLAIN
             // return JSONResponse.createResponse(Status.OK, item.getState().toString(), null);
-            return Response.ok(item.getState().toString()).build();
+            return Response.ok(item.getState().toFullString()).build();
         } else {
             logger.info("Received HTTP GET request at '{}' for the unknown item '{}'.", uriInfo.getPath(), itemname);
             return getItemNotFoundResponse(itemname);
@@ -222,6 +230,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @PUT
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}/state")
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Updates the state of an item.")
@@ -269,6 +278,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @POST
+    @RolesAllowed({ Role.USER, Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}")
     @Consumes(MediaType.TEXT_PLAIN)
     @ApiOperation(value = "Sends a command to an item.")
@@ -320,6 +330,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @PUT
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{itemName: [a-zA-Z_0-9]*}/members/{memberItemName: [a-zA-Z_0-9]*}")
     @ApiOperation(value = "Adds a new member to a group item.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -357,6 +368,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @DELETE
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{itemName: [a-zA-Z_0-9]*}/members/{memberItemName: [a-zA-Z_0-9]*}")
     @ApiOperation(value = "Removes an existing member from a group item.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -394,6 +406,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @DELETE
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}")
     @ApiOperation(value = "Removes an item from the registry.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -409,6 +422,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @PUT
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}/tags/{tag}")
     @ApiOperation(value = "Adds a tag to an item.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -435,6 +449,7 @@ public class ItemResource implements SatisfiableRESTResource {
     }
 
     @DELETE
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}/tags/{tag}")
     @ApiOperation(value = "Removes a tag from an item.")
     @ApiResponses(value = { @ApiResponse(code = 200, message = "OK"),
@@ -468,6 +483,7 @@ public class ItemResource implements SatisfiableRESTResource {
      * @return
      */
     @PUT
+    @RolesAllowed({ Role.ADMIN })
     @Path("/{itemname: [a-zA-Z_0-9]*}")
     @Consumes(MediaType.APPLICATION_JSON)
     @ApiOperation(value = "Adds a new item to the registry or updates the existing item.")

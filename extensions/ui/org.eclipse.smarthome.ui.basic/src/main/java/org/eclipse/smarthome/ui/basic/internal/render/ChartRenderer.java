@@ -1,11 +1,13 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
  * http://www.eclipse.org/legal/epl-v10.html
  */
 package org.eclipse.smarthome.ui.basic.internal.render;
+
+import java.util.Date;
 
 import org.apache.commons.lang.StringUtils;
 import org.eclipse.emf.common.util.EList;
@@ -55,7 +57,7 @@ public class ChartRenderer extends AbstractWidgetRenderer {
                 itemParam = "items=" + chart.getItem();
             }
 
-            String url = "/chart?" + itemParam + "&period=" + chart.getPeriod() + "&random=1";
+            String url = "/chart?" + itemParam + "&period=" + chart.getPeriod() + "&t=" + (new Date()).getTime();
             if (chart.getService() != null) {
                 url += "&service=" + chart.getService();
             }

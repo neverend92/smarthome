@@ -55,7 +55,14 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             params : {
                 itemName : '@itemName'
             },
-            url : restConfig.restPath + '/items/:itemName?api_key=' + restConfig.apiKey
+            url : restConfig.restPath + '/items/:itemName?api_key=' + restConfig.apiKey,
+            transformResponse : function(response, headerGetter, status) {
+                var response = angular.fromJson(response);
+                if (status == 405) {
+                    response.customMessage = "Item is not editable.";
+                }
+                return response;
+            }
         },
         updateState : {
             method : 'PUT',
@@ -63,6 +70,19 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
                 itemName : '@itemName'
             },
             url : restConfig.restPath + '/items/:itemName/state?api_key=' + restConfig.apiKey,
+            headers : {
+                'Content-Type' : 'text/plain'
+            }
+        },
+        getItemState : {
+            method : 'GET',
+            params : {
+                itemName : '@itemName'
+            },
+            url : restConfig.restPath + '/items/:itemName/state?api_key=' + restConfig.apiKey,
+            transformResponse : function(data) {
+                return data;
+            },
             headers : {
                 'Content-Type' : 'text/plain'
             }
@@ -145,7 +165,14 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
         getAll : {
             method : 'GET',
             isArray : true,
-            url : restConfig.restPath + '/inbox?api_key=' + restConfig.apiKey
+            url : restConfig.restPath + '/inbox?api_key=' + restConfig.apiKey,
+            transformResponse : function(data) {
+                var results = angular.fromJson(data);
+                for (var i = 0; i < results.length; i++) {
+                    results[i].bindingType = results[i].thingTypeUID.split(':')[0];
+                }
+                return results
+            },
         },
         approve : {
             method : 'POST',
@@ -480,6 +507,16 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             method : 'GET',
             url : restConfig.restPath + '/templates?api_key=' + restConfig.apiKey,
             isArray : true
+        },
+        runRule : {
+            method : 'POST',
+            params : {
+                ruleUID : '@ruleUID'
+            },
+            url : restConfig.restPath + '/rules/:ruleUID/runnow?api_key=' + restConfig.apiKey,
+            headers : {
+                'Content-Type' : 'text/plain'
+            }
         }
     });
 }).factory('moduleTypeService', function($resource, restConfig) {
@@ -565,4 +602,28 @@ angular.module('PaperUI.services.rest', [ 'PaperUI.constants' ]).config(function
             url : restConfig.restPath + '/channel-types/:channelTypeUID?api_key=' + restConfig.apiKey
         },
     });
+}).factory('templateService', function($resource, restConfig) {
+    return $resource(restConfig.restPath + '/channel-types', {}, {
+        getAll : {
+            method : 'GET',
+            url : restConfig.restPath + '/templates',
+            isArray : true
+        },
+        getByUid : {
+            method : 'GET',
+            params : {
+                templateUID : '@templateUID'
+            },
+            url : restConfig.restPath + '/templates/:templateUID'
+        },
+    });
+}).factory('imageService', function(restConfig, $http) {
+    return {
+        getItemState : function(itemName) {
+            var promise = $http.get(restConfig.restPath + "/items/" + itemName + "/state").then(function(response) {
+                return response.data;
+            });
+            return promise;
+        }
+    }
 });

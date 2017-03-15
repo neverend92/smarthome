@@ -1,0 +1,195 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<features xmlns="http://karaf.apache.org/xmlns/features/v1.3.0" name="karaf-0.9.0-SNAPSHOT">
+    <feature version="0.0.0">
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-api</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-core</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-core</feature>
+        <feature prerequisite="false" dependency="false">esh-automation-module-script</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-base</feature>
+        <feature prerequisite="false" dependency="false">esh-io-rest-sitemap</feature>
+        <feature prerequisite="false" dependency="false">esh-io-transport-mdns</feature>
+        <feature prerequisite="false" dependency="false">esh-io-transport-mdns</feature>
+        <feature prerequisite="false" dependency="false">esh-io-transport-upnp</feature>
+        <feature prerequisite="false" dependency="false">esh-io-transport-upnp</feature>
+        <feature prerequisite="false" dependency="false">esh-io-transport-upnp</feature>
+        <feature prerequisite="false" dependency="false">esh-io-transport-upnp</feature>
+        <feature prerequisite="false" dependency="false">esh-model-item</feature>
+        <feature prerequisite="false" dependency="false">esh-model-item</feature>
+        <feature prerequisite="false" dependency="false">esh-model-item</feature>
+        <feature prerequisite="false" dependency="false">esh-model-item</feature>
+        <feature prerequisite="false" dependency="false">esh-model-item</feature>
+        <feature prerequisite="false" dependency="false">esh-model-persistence</feature>
+        <feature prerequisite="false" dependency="false">esh-model-persistence</feature>
+        <feature prerequisite="false" dependency="false">esh-model-persistence</feature>
+        <feature prerequisite="false" dependency="false">esh-model-rule</feature>
+        <feature prerequisite="false" dependency="false">esh-model-script</feature>
+        <feature prerequisite="false" dependency="false">esh-model-script</feature>
+        <feature prerequisite="false" dependency="false">esh-model-sitemap</feature>
+        <feature prerequisite="false" dependency="false">esh-model-sitemap</feature>
+        <feature prerequisite="false" dependency="false">esh-model-thing</feature>
+        <feature prerequisite="false" dependency="false">esh-tp</feature>
+        <feature prerequisite="false" dependency="false">esh-ui</feature>
+        <feature prerequisite="false" dependency="false">esh-ui</feature>
+        <feature prerequisite="false" dependency="false">esh-ui</feature>
+        <feature prerequisite="false" dependency="false">esh-ui-icon</feature>
+        <feature prerequisite="false" dependency="false">esh-ui-mgmt</feature>
+        <feature prerequisite="false" dependency="false">esh-ui-mgmt</feature>
+        <feature prerequisite="false" dependency="false">shell</feature>
+        <bundle>mvn:com.jayway.jsonpath/json-path/2.0.0</bundle>
+        <bundle>mvn:net.minidev/asm/1.0.2</bundle>
+        <bundle>mvn:net.minidev/json-smart/2.1.1</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.api/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.commands/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.core/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.module.core/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.module.media/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.module.script.defaultscope/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.module.script/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.module.timer/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.parser.gson/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.providers/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.automation/org.eclipse.smarthome.automation.rest/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.digitalstrom/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.fsinternetradio/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.hue/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.lifx/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.ntp/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.sonos/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.wemo/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.binding/org.eclipse.smarthome.binding.yahooweather/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.config/org.eclipse.smarthome.config.core/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.config/org.eclipse.smarthome.config.discovery/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.config/org.eclipse.smarthome.config.dispatch/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.config/org.eclipse.smarthome.config.xml/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.audio/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.autoupdate/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.binding.xml/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.id/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.persistence/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.scheduler/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.thing.xml/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.thing/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.transform/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core.voice/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.core/org.eclipse.smarthome.core/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui.iconset/org.eclipse.smarthome.ui.iconset.classic/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.basic/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.classic/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.mgmt/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.nodemgmt/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.paper/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.extension.ui/org.eclipse.smarthome.ui.usermgmt/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.console.karaf/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.console/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.javasound/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.monitor/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.net/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.rest.core/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.rest.mdns/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.rest.sitemap/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.rest.sse/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.rest.voice/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.rest/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.transport.dbus/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.transport.mdns/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.transport.mqtt/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.transport.upnp/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.io/org.eclipse.smarthome.io.webaudio/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.core/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.item.runtime/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.item/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.persistence.runtime/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.persistence/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.rule.runtime/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.rule/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.script.runtime/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.script/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.sitemap.runtime/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.sitemap/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.thing.runtime/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.model/org.eclipse.smarthome.model.thing/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.storage/org.eclipse.smarthome.storage.json/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.storage/org.eclipse.smarthome.storage.mapdb/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.exec/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.javascript/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.jsonpath/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.map/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.regex/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.scale/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.xpath/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.transform/org.eclipse.smarthome.transform.xslt/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.ui/org.eclipse.smarthome.ui.icon/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.ui/org.eclipse.smarthome.ui/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.eclipse.smarthome.voice/org.eclipse.smarthome.voice.mactts/0.9.0-SNAPSHOT</bundle>
+        <bundle>mvn:org.mapdb/mapdb/1.0.9</bundle>
+    </feature>
+</features>

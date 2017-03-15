@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,6 +15,7 @@ import java.util.Locale;
 import java.util.Map;
 import java.util.Set;
 
+import javax.annotation.security.RolesAllowed;
 import javax.ws.rs.Consumes;
 import javax.ws.rs.GET;
 import javax.ws.rs.HeaderParam;
@@ -33,6 +34,7 @@ import org.eclipse.smarthome.config.core.ConfigDescription;
 import org.eclipse.smarthome.config.core.ConfigDescriptionRegistry;
 import org.eclipse.smarthome.config.core.ConfigUtil;
 import org.eclipse.smarthome.config.core.Configuration;
+import org.eclipse.smarthome.core.auth.Role;
 import org.eclipse.smarthome.core.binding.BindingInfo;
 import org.eclipse.smarthome.core.binding.BindingInfoRegistry;
 import org.eclipse.smarthome.core.binding.dto.BindingInfoDTO;
@@ -58,6 +60,7 @@ import io.swagger.annotations.ApiResponses;
  * @author Yordan Zhelev - Added Swagger annotations
  */
 @Path(BindingResource.PATH_BINDINGS)
+@RolesAllowed({ Role.ADMIN })
 @Api(value = BindingResource.PATH_BINDINGS)
 public class BindingResource implements SatisfiableRESTResource {
 
@@ -164,7 +167,7 @@ public class BindingResource implements SatisfiableRESTResource {
             return properties;
         }
 
-        return ConfigUtil.normalizeTypes(properties, configDesc);
+        return ConfigUtil.normalizeTypes(properties, Collections.singletonList(configDesc));
     }
 
     private String getConfigId(String bindingId) {

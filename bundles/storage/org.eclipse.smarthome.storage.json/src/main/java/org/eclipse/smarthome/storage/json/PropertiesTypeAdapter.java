@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 openHAB UG (haftungsbeschraenkt) and others.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -52,7 +52,7 @@ public class PropertiesTypeAdapter extends TypeAdapter<Map<String, Object>> {
         valueAdapter = gson.getAdapter(Object.class);
 
         // obtain default gson objects
-        constructor = new ConstructorConstructor(Collections.<Type, InstanceCreator<?>> emptyMap());
+        constructor = new ConstructorConstructor(Collections.<Type, InstanceCreator<?>>emptyMap());
         delegate = new MapTypeAdapterFactory(constructor, false).create(new Gson(), TOKEN);
     }
 
@@ -114,7 +114,12 @@ public class PropertiesTypeAdapter extends TypeAdapter<Map<String, Object>> {
         // if the next json token is a number we read it as a BigDecimal,
         // otherwise use the default adapter to read it
         if (JsonToken.NUMBER.equals(in.peek())) {
-            value = new BigDecimal(in.nextString());
+            String inString = in.nextString();
+            if (inString.endsWith(".0")) {
+                value = new BigDecimal(inString).setScale(0);
+            } else {
+                value = new BigDecimal(inString);
+            }
         } else {
             value = valueAdapter.read(in);
         }

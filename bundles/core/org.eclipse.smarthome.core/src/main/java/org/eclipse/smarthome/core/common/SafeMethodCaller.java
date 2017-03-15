@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,8 @@
  */
 package org.eclipse.smarthome.core.common;
 
+import java.security.AccessController;
+import java.security.PrivilegedAction;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.Future;
@@ -25,6 +27,8 @@ import org.slf4j.LoggerFactory;
  * @author Dennis Nobel - Initial contribution
  */
 public class SafeMethodCaller {
+
+    private static final String SAFE_CALL_POOL_NAME = "safeCall";
 
     /**
      * Executable Action. See {@link SafeMethodCaller#call(Action)}
@@ -180,21 +184,40 @@ public class SafeMethodCaller {
 
     private static <V> V callAsynchronous(final Callable<V> callable, int timeout)
             throws InterruptedException, ExecutionException, TimeoutException {
+        if (Thread.currentThread().getName().startsWith(SAFE_CALL_POOL_NAME + "-")) {
+            getLogger().trace("Already in a SafeMethodCaller context, executing {} directly.", callable);
+            return executeDirectly(callable);
+        }
         CallableWrapper<V> wrapper = new CallableWrapper<>(callable);
         try {
-            Future<V> future = ThreadPoolManager.getPool("safeCall").submit(wrapper);
+            Future<V> future = ThreadPoolManager.getPool(SAFE_CALL_POOL_NAME).submit(wrapper);
             return future.get(timeout, TimeUnit.MILLISECONDS);
         } catch (TimeoutException e) {
             if (wrapper.getThread() != null) {
-                Thread thread = wrapper.getThread();
-                StackTraceElement element = thread.getStackTrace()[0];
+                final Thread thread = wrapper.getThread();
+                StackTraceElement element = AccessController.doPrivileged(new PrivilegedAction<StackTraceElement>() {
+
+                    @Override
+                    public StackTraceElement run() {
+                        return thread.getStackTrace()[0];
+                    }
+                });
                 getLogger().debug("Timeout of {}ms exceeded, thread {} ({}) in state {} is at {}.{}({}:{}).", timeout,
                         thread.getName(), thread.getId(), thread.getState().toString(), element.getClassName(),
                         element.getMethodName(), element.getFileName(), element.getLineNumber());
+                throw e;
             } else {
-                getLogger().debug("Timeout of {}ms exceeded with no thread info available.", timeout);
+                getLogger().debug("Timeout of {}ms exceeded but the task was still queued.", timeout);
             }
-            throw e;
+            return null;
+        }
+    }
+
+    private static <V> V executeDirectly(final Callable<V> callable) throws ExecutionException {
+        try {
+            return callable.call();
+        } catch (Exception e) {
+            throw new ExecutionException(e);
         }
     }
 

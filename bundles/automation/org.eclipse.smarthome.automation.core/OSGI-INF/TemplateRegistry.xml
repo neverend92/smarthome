@@ -16,6 +16,4 @@
       <provide interface="org.eclipse.smarthome.automation.template.TemplateRegistry"/>
    </service>
    
-    <reference bind="addTemplateProvider" cardinality="0..n" interface="org.eclipse.smarthome.automation.template.TemplateProvider" name="TemplateProvider" policy="dynamic" unbind="removeTemplateProvider"/>
-
 </scr:component>

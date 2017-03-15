@@ -39,21 +39,18 @@ import org.eclipse.smarthome.core.common.registry.Provider;
  * @author Yordan Mihaylov - Initial Contribution
  * @author Kai Kreuzer - refactored (managed) provider and registry implementation
  */
-public class ModuleTypeRegistryImpl extends AbstractRegistry<ModuleType, String, Provider<ModuleType>>
+public class ModuleTypeRegistryImpl extends AbstractRegistry<ModuleType, String, ModuleTypeProvider>
         implements ModuleTypeRegistry {
 
-    private Set<ModuleTypeProvider> providers = new HashSet<ModuleTypeProvider>();
-
     public ModuleTypeRegistryImpl() {
-        super(null);
+        super(ModuleTypeProvider.class);
     }
 
-    protected void addModuleTypeProvider(ModuleTypeProvider moduleTypeProvider) {
-        providers.add(moduleTypeProvider);
-    }
-
-    protected void removeModuleTypeProvider(ModuleTypeProvider moduleTypeProvider) {
-        providers.remove(moduleTypeProvider);
+    @Override
+    protected void addProvider(Provider<ModuleType> provider) {
+        if (provider instanceof ModuleTypeProvider) {
+            super.addProvider(provider);
+        }
     }
 
     @Override
@@ -61,11 +58,14 @@ public class ModuleTypeRegistryImpl extends AbstractRegistry<ModuleType, String,
         return get(typeUID, null);
     }
 
-    @SuppressWarnings("unchecked")
     @Override
+    @SuppressWarnings("unchecked")
     public <T extends ModuleType> T get(String moduleTypeUID, Locale locale) {
-        for (ModuleTypeProvider provider : providers) {
-            ModuleType mType = provider.getModuleType(moduleTypeUID, locale);
+        T mType = null;
+        for (Provider<ModuleType> provider : elementMap.keySet()) {
+            if (provider instanceof ModuleTypeProvider) {
+                mType = ((ModuleTypeProvider) provider).getModuleType(moduleTypeUID, locale);
+            }
             if (mType != null) {
                 return (T) createCopy(mType);
             }
@@ -83,8 +83,8 @@ public class ModuleTypeRegistryImpl extends AbstractRegistry<ModuleType, String,
     public <T extends ModuleType> Collection<T> getByTag(String moduleTypeTag, Locale locale) {
         Collection<T> result = new ArrayList<T>(20);
         Collection<ModuleType> moduleTypes = null;
-        for (ModuleTypeProvider provider : providers) {
-            moduleTypes = provider.getModuleTypes(locale);
+        for (Provider<ModuleType> provider : elementMap.keySet()) {
+            moduleTypes = ((ModuleTypeProvider) provider).getModuleTypes(locale);
             if (moduleTypes != null) {
                 for (Iterator<ModuleType> it = moduleTypes.iterator(); it.hasNext();) {
                     ModuleType mt = it.next();
@@ -113,8 +113,8 @@ public class ModuleTypeRegistryImpl extends AbstractRegistry<ModuleType, String,
         Set<String> tagSet = tags != null ? new HashSet<String>(Arrays.asList(tags)) : null;
         Collection<T> result = new ArrayList<T>(20);
         Collection<ModuleType> moduleTypes = null;
-        for (ModuleTypeProvider provider : providers) {
-            moduleTypes = provider.getModuleTypes(locale);
+        for (Provider<ModuleType> provider : elementMap.keySet()) {
+            moduleTypes = ((ModuleTypeProvider) provider).getModuleTypes(locale);
             if (moduleTypes != null) {
                 for (Iterator<ModuleType> it = moduleTypes.iterator(); it.hasNext();) {
                     ModuleType mt = it.next();
@@ -133,104 +133,120 @@ public class ModuleTypeRegistryImpl extends AbstractRegistry<ModuleType, String,
     }
 
     @Override
-    public Collection<TriggerType> getTriggers(Locale locale) {
-        return getAll(TriggerType.class, locale);
-    }
-
-    @Override
-    public Collection<TriggerType> getTriggers() {
-        return getAll(TriggerType.class);
-    }
-
-    @Override
-    public Collection<ConditionType> getConditions() {
-        return getAll(ConditionType.class);
-    }
-
-    @Override
-    public Collection<ConditionType> getConditions(Locale locale) {
-        return getAll(ConditionType.class, locale);
-    }
-
-    @Override
-    public Collection<ActionType> getActions() {
-        return getAll(ActionType.class);
-    }
-
-    @Override
-    public Collection<ActionType> getActions(Locale locale) {
-        return getAll(ActionType.class, locale);
-    }
-
-    private <T extends ModuleType> Collection<T> getAll(Class<T> classModuleType) {
-        return getAll(classModuleType, null);
-    }
-
-    @SuppressWarnings("unchecked")
-    private <T extends ModuleType> Collection<T> getAll(Class<T> moduleType, Locale locale) {
-        Collection<T> result = new ArrayList<T>(20);
-        Collection<ModuleType> moduleTypes = null;
-        for (ModuleTypeProvider provider : providers) {
-            moduleTypes = provider.getModuleTypes(locale);
-            if (moduleTypes != null) {
-                for (Iterator<ModuleType> it = moduleTypes.iterator(); it.hasNext();) {
-                    ModuleType mt = it.next();
-                    if (moduleType != null) {
-                        if (moduleType.isInstance(mt)) {
-                            result.add((T) createCopy(mt));
-                        }
-                    } else {
-                        result.add((T) createCopy(mt));
-                    }
-                }
+    public Collection<TriggerType> getTriggers(Locale locale, String... tags) {
+        Collection<ModuleType> moduleTypes = getByTags(locale, tags);
+        Collection<TriggerType> triggerTypes = new ArrayList<TriggerType>();
+        for (ModuleType mt : moduleTypes) {
+            if (mt instanceof TriggerType) {
+                triggerTypes.add((TriggerType) mt);
             }
         }
-        return result;
+        return triggerTypes;
+    }
+
+    @Override
+    public Collection<TriggerType> getTriggers(String... tags) {
+        Collection<ModuleType> moduleTypes = getByTags(tags);
+        Collection<TriggerType> triggerTypes = new ArrayList<TriggerType>();
+        for (ModuleType mt : moduleTypes) {
+            if (mt instanceof TriggerType) {
+                triggerTypes.add((TriggerType) mt);
+            }
+        }
+        return triggerTypes;
+    }
+
+    @Override
+    public Collection<ConditionType> getConditions(String... tags) {
+        Collection<ModuleType> moduleTypes = getByTags(tags);
+        Collection<ConditionType> conditionTypes = new ArrayList<ConditionType>();
+        for (ModuleType mt : moduleTypes) {
+            if (mt instanceof ConditionType) {
+                conditionTypes.add((ConditionType) mt);
+            }
+        }
+        return conditionTypes;
+    }
+
+    @Override
+    public Collection<ConditionType> getConditions(Locale locale, String... tags) {
+        Collection<ModuleType> moduleTypes = getByTags(locale, tags);
+        Collection<ConditionType> conditionTypes = new ArrayList<ConditionType>();
+        for (ModuleType mt : moduleTypes) {
+            if (mt instanceof ConditionType) {
+                conditionTypes.add((ConditionType) mt);
+            }
+        }
+        return conditionTypes;
+    }
+
+    @Override
+    public Collection<ActionType> getActions(String... tags) {
+        Collection<ModuleType> moduleTypes = getByTags(tags);
+        Collection<ActionType> actionTypes = new ArrayList<ActionType>();
+        for (ModuleType mt : moduleTypes) {
+            if (mt instanceof ActionType) {
+                actionTypes.add((ActionType) mt);
+            }
+        }
+        return actionTypes;
+    }
+
+    @Override
+    public Collection<ActionType> getActions(Locale locale, String... tags) {
+        Collection<ModuleType> moduleTypes = getByTags(locale, tags);
+        Collection<ActionType> actionTypes = new ArrayList<ActionType>();
+        for (ModuleType mt : moduleTypes) {
+            if (mt instanceof ActionType) {
+                actionTypes.add((ActionType) mt);
+            }
+        }
+        return actionTypes;
     }
 
     private ModuleType createCopy(ModuleType mType) {
         if (mType == null) {
             return null;
         }
+
+        ModuleType result;
         if (mType instanceof CompositeTriggerType) {
             CompositeTriggerType m = (CompositeTriggerType) mType;
-            return new CompositeTriggerType(m.getUID(), m.getConfigurationDescriptions(), m.getLabel(),
-                    m.getDescription(), m.getTags(), m.getVisibility(), m.getOutputs(), copyTriggers(m.getChildren()));
+            result = new CompositeTriggerType(mType.getUID(), mType.getConfigurationDescriptions(), mType.getLabel(),
+                    mType.getDescription(), mType.getTags(), mType.getVisibility(), m.getOutputs(),
+                    copyTriggers(m.getChildren()));
 
-        }
-        if (mType instanceof TriggerType) {
+        } else if (mType instanceof TriggerType) {
             TriggerType m = (TriggerType) mType;
-            return new TriggerType(m.getUID(), m.getConfigurationDescriptions(), m.getLabel(), m.getDescription(),
-                    m.getTags(), m.getVisibility(), m.getOutputs());
+            result = new TriggerType(mType.getUID(), mType.getConfigurationDescriptions(), mType.getLabel(),
+                    mType.getDescription(), mType.getTags(), mType.getVisibility(), m.getOutputs());
 
-        }
-        if (mType instanceof CompositeConditionType) {
+        } else if (mType instanceof CompositeConditionType) {
             CompositeConditionType m = (CompositeConditionType) mType;
-            return new CompositeConditionType(m.getUID(), m.getConfigurationDescriptions(), m.getLabel(),
-                    m.getDescription(), m.getTags(), m.getVisibility(), m.getInputs(), copyConditions(m.getChildren()));
+            result = new CompositeConditionType(mType.getUID(), mType.getConfigurationDescriptions(), mType.getLabel(),
+                    mType.getDescription(), mType.getTags(), mType.getVisibility(), m.getInputs(),
+                    copyConditions(m.getChildren()));
 
-        }
-        if (mType instanceof ConditionType) {
+        } else if (mType instanceof ConditionType) {
             ConditionType m = (ConditionType) mType;
-            return new ConditionType(m.getUID(), m.getConfigurationDescriptions(), m.getLabel(), m.getDescription(),
-                    m.getTags(), m.getVisibility(), m.getInputs());
+            result = new ConditionType(mType.getUID(), mType.getConfigurationDescriptions(), mType.getLabel(),
+                    mType.getDescription(), mType.getTags(), mType.getVisibility(), m.getInputs());
 
-        }
-        if (mType instanceof CompositeActionType) {
+        } else if (mType instanceof CompositeActionType) {
             CompositeActionType m = (CompositeActionType) mType;
-            return new CompositeActionType(m.getUID(), m.getConfigurationDescriptions(), m.getLabel(),
-                    m.getDescription(), m.getTags(), m.getVisibility(), m.getInputs(), m.getOutputs(),
+            result = new CompositeActionType(mType.getUID(), mType.getConfigurationDescriptions(), mType.getLabel(),
+                    mType.getDescription(), mType.getTags(), mType.getVisibility(), m.getInputs(), m.getOutputs(),
                     copyActions(m.getChildren()));
 
-        }
-        if (mType instanceof ActionType) {
+        } else if (mType instanceof ActionType) {
             ActionType m = (ActionType) mType;
-            return new ActionType(m.getUID(), m.getConfigurationDescriptions(), m.getLabel(), m.getDescription(),
-                    m.getTags(), m.getVisibility(), m.getInputs(), m.getOutputs());
+            result = new ActionType(mType.getUID(), mType.getConfigurationDescriptions(), mType.getLabel(),
+                    mType.getDescription(), mType.getTags(), mType.getVisibility(), m.getInputs(), m.getOutputs());
 
         } else {
             throw new IllegalArgumentException("Invalid template type:" + mType);
         }
+        return result;
     }
 
     private static List<Trigger> copyTriggers(List<Trigger> triggers) {

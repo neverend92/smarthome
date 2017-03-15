@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -181,23 +181,26 @@ public class NtpHandler extends BaseThingHandler {
     }
 
     private synchronized void refreshTimeDate() {
+        if (timeZone != null && locale != null) {
+            long networkTimeInMillis;
+            if (refreshNtpCount <= 0) {
+                networkTimeInMillis = getTime(hostname);
+                timeOffset = networkTimeInMillis - System.currentTimeMillis();
+                logger.debug("{} delta system time: {}", getThing().getUID().toString(), timeOffset);
+                refreshNtpCount = refreshNtp.intValue();
+            } else {
+                networkTimeInMillis = System.currentTimeMillis() + timeOffset;
+                refreshNtpCount--;
+            }
 
-        long networkTimeInMillis;
-        if (refreshNtpCount <= 0) {
-            networkTimeInMillis = getTime(hostname);
-            timeOffset = networkTimeInMillis - System.currentTimeMillis();
-            logger.debug("{} delta system time: {}", getThing().getUID().toString(), timeOffset);
-            refreshNtpCount = refreshNtp.intValue();
+            Calendar calendar = Calendar.getInstance(timeZone, locale);
+            calendar.setTimeInMillis(networkTimeInMillis);
+
+            updateState(dateTimeChannelUID, new DateTimeType(calendar));
+            updateState(stringChannelUID, new StringType(dateTimeFormat.format(calendar.getTime())));
         } else {
-            networkTimeInMillis = System.currentTimeMillis() + timeOffset;
-            refreshNtpCount--;
+            logger.debug("Not refreshing, since we do not seem to be initialized yet");
         }
-
-        Calendar calendar = Calendar.getInstance(timeZone, locale);
-        calendar.setTimeInMillis(networkTimeInMillis);
-
-        updateState(dateTimeChannelUID, new DateTimeType(calendar));
-        updateState(stringChannelUID, new StringType(dateTimeFormat.format(calendar.getTime())));
     }
 
     /**

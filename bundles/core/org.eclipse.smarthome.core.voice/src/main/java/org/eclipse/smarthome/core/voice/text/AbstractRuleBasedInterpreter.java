@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -49,6 +49,7 @@ public abstract class AbstractRuleBasedInterpreter implements HumanLanguageInter
     private static final String STATE_ALREADY_SINGULAR = "state_already_singular";
     private static final String MULTIPLE_OBJECTS = "multiple_objects";
     private static final String NO_OBJECTS = "no_objects";
+    private static final String COMMAND_NOT_ACCEPTED = "command_not_accepted";
 
     private static final String CMD = "cmd";
     private static final String NAME = "name";
@@ -479,7 +480,12 @@ public abstract class AbstractRuleBasedInterpreter implements HumanLanguageInter
             throws InterpretationException {
         ArrayList<Item> items = getMatchingItems(language, labelFragments, command.getClass());
         if (items.size() < 1) {
-            throw new InterpretationException(language.getString(NO_OBJECTS));
+            if (getMatchingItems(language, labelFragments, null).size() >= 1) {
+                throw new InterpretationException(
+                        language.getString(COMMAND_NOT_ACCEPTED).replace("<cmd>", command.toString()));
+            } else {
+                throw new InterpretationException(language.getString(NO_OBJECTS));
+            }
         } else if (items.size() > 1) {
             throw new InterpretationException(language.getString(MULTIPLE_OBJECTS));
         } else {
@@ -578,7 +584,13 @@ public abstract class AbstractRuleBasedInterpreter implements HumanLanguageInter
         if (text == null) {
             return parts;
         }
-        String[] split = text.toLowerCase(locale).replaceAll("[\\']", "").replaceAll("[^\\w\\s]", " ").split("\\s");
+        String[] split;
+        if ((locale != null) && locale.getLanguage().equalsIgnoreCase(Locale.FRENCH.getLanguage())) {
+            split = text.toLowerCase(locale).replaceAll("[\\']", " ").replaceAll("[^\\w\\sàâäçéèêëîïôùûü]", " ")
+                    .split("\\s");
+        } else {
+            split = text.toLowerCase(locale).replaceAll("[\\']", "").replaceAll("[^\\w\\s]", " ").split("\\s");
+        }
         for (int i = 0; i < split.length; i++) {
             String part = split[i].trim();
             if (part.length() > 0) {

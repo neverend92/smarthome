@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -15,12 +15,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.locks.ReentrantLock;
 
+import org.eclipse.smarthome.binding.lifx.internal.fields.MACAddress;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
  * The {@link LifxNetworkThrottler} is a helper class that regulates the frequency at which messages/packets are sent to
- * LIFX bulbs. The LIFX LAN Protocol Specification states that bulbs can process up to 20 messages per second, not more.
+ * LIFX lights. The LIFX LAN Protocol Specification states that lights can process up to 20 messages per second, not
+ * more.
  *
  * @author Karel Goderis - Initial Contribution
  * @author Wouter Born - Deadlock fix
@@ -30,7 +32,7 @@ public class LifxNetworkThrottler {
     private static Logger logger = LoggerFactory.getLogger(LifxNetworkThrottler.class);
 
     /**
-     * Tracks when the last packet was sent to a LIFX bulb. The packet is sent after obtaining the lock and before
+     * Tracks when the last packet was sent to a LIFX light. The packet is sent after obtaining the lock and before
      * releasing the lock.
      */
     private static class LifxLightCommunicationTracker {
@@ -65,15 +67,15 @@ public class LifxNetworkThrottler {
      */
     private static List<LifxLightCommunicationTracker> trackers = new CopyOnWriteArrayList<>();
 
-    private static Map<String, LifxLightCommunicationTracker> macTrackerMapping = new ConcurrentHashMap<String, LifxLightCommunicationTracker>();
+    private static Map<MACAddress, LifxLightCommunicationTracker> macTrackerMapping = new ConcurrentHashMap<MACAddress, LifxLightCommunicationTracker>();
 
-    public static void lock(String mac) {
+    public static void lock(MACAddress mac) {
         LifxLightCommunicationTracker tracker = getOrCreateTracker(mac);
         tracker.lock();
         waitForNextPacketInterval(tracker.getTimestamp());
     }
 
-    private static LifxLightCommunicationTracker getOrCreateTracker(String mac) {
+    private static LifxLightCommunicationTracker getOrCreateTracker(MACAddress mac) {
         LifxLightCommunicationTracker tracker = macTrackerMapping.get(mac);
         if (tracker == null) {
             // for better performance only synchronize when necessary
@@ -101,7 +103,7 @@ public class LifxNetworkThrottler {
         }
     }
 
-    public static void unlock(String mac) {
+    public static void unlock(MACAddress mac) {
         if (macTrackerMapping.containsKey(mac)) {
             macTrackerMapping.get(mac).unlock();
         }

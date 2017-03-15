@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -26,6 +26,7 @@ public class LifxLightState {
     private PowerState powerState;
     private HSBType hsb;
     private PercentType temperature;
+    private PercentType infrared;
 
     private long lastChange;
 
@@ -35,6 +36,7 @@ public class LifxLightState {
         this.powerState = other.getPowerState();
         this.hsb = other.getHSB();
         this.temperature = other.getTemperature();
+        this.infrared = other.getInfrared();
     }
 
     public PowerState getPowerState() {
@@ -49,6 +51,10 @@ public class LifxLightState {
         return temperature;
     }
 
+    public PercentType getInfrared() {
+        return infrared;
+    }
+
     public void setHSB(HSBType newHSB) {
         HSBType oldHSB = this.hsb;
         this.hsb = newHSB;
@@ -58,8 +64,8 @@ public class LifxLightState {
         }
     }
 
-    public void setPowerState(OnOffType onOffType) {
-        setPowerState(onOffType == OnOffType.ON ? PowerState.ON : PowerState.OFF);
+    public void setPowerState(OnOffType newOnOff) {
+        setPowerState(PowerState.fromOnOffType(newOnOff));
     }
 
     public void setPowerState(PowerState newPowerState) {
@@ -77,6 +83,15 @@ public class LifxLightState {
         updateLastChange();
         for (LifxLightStateListener listener : listeners) {
             listener.handleTemperatureChange(oldTemperature, newTemperature);
+        }
+    }
+
+    public void setInfrared(PercentType newInfrared) {
+        PercentType oldInfrared = this.infrared;
+        this.infrared = newInfrared;
+        updateLastChange();
+        for (LifxLightStateListener listener : listeners) {
+            listener.handleInfraredChange(oldInfrared, newInfrared);
         }
     }
 

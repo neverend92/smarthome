@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -41,8 +41,6 @@ import org.eclipse.smarthome.binding.lifx.LifxBindingConstants;
 import org.eclipse.smarthome.binding.lifx.handler.LifxLightHandler.CurrentLightState;
 import org.eclipse.smarthome.binding.lifx.internal.fields.MACAddress;
 import org.eclipse.smarthome.binding.lifx.internal.listener.LifxResponsePacketListener;
-import org.eclipse.smarthome.binding.lifx.internal.protocol.GetLightPowerRequest;
-import org.eclipse.smarthome.binding.lifx.internal.protocol.GetRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.GetServiceRequest;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.Packet;
 import org.eclipse.smarthome.binding.lifx.internal.protocol.PacketFactory;
@@ -113,7 +111,7 @@ public class LifxLightCommunicationHandler {
 
             lock.lock();
 
-            logger.debug("Starting LIFX communication handler for bulb '{}'.", macAsHex);
+            logger.debug("Starting LIFX communication handler for light '{}'.", macAsHex);
 
             if (networkJob == null || networkJob.isCancelled()) {
                 networkJob = scheduler.scheduleWithFixedDelay(networkRunnable, 0, PACKET_INTERVAL,
@@ -326,7 +324,7 @@ public class LifxLightCommunicationHandler {
                     }
                 }
             } catch (Exception e) {
-                logger.error("An exception occurred while receiving a packet from the bulb : '{}'", e.getMessage());
+                logger.error("An exception occurred while receiving a packet from the light : '{}'", e.getMessage());
             } finally {
                 lock.unlock();
             }
@@ -374,22 +372,16 @@ public class LifxLightCommunicationHandler {
                                 unicastKey = unicastChannel.register(selector,
                                         SelectionKey.OP_READ | SelectionKey.OP_WRITE);
                                 unicastChannel.connect(ipAddress);
-                                logger.trace("Connected to a bulb via {}", unicastChannel.getLocalAddress().toString());
+                                logger.trace("Connected to a light via {}",
+                                        unicastChannel.getLocalAddress().toString());
                             } catch (Exception e) {
-                                logger.warn("An exception occurred while connecting to the bulb's IP address : '{}'",
+                                logger.warn("An exception occurred while connecting to the light's IP address : '{}'",
                                         e.getMessage());
                                 currentLightState.setOfflineByCommunicationError();
                                 return;
                             }
 
                             currentLightState.setOnline();
-
-                            // populate the current state variables
-                            GetLightPowerRequest powerPacket = new GetLightPowerRequest();
-                            sendPacket(powerPacket);
-
-                            GetRequest colorPacket = new GetRequest();
-                            sendPacket(colorPacket);
                         }
                     }
                 }
@@ -468,7 +460,7 @@ public class LifxLightCommunicationHandler {
             lock.lock();
 
             if (selectedKey == unicastKey) {
-                LifxNetworkThrottler.lock(macAsHex);
+                LifxNetworkThrottler.lock(macAddress);
             } else {
                 LifxNetworkThrottler.lock();
             }
@@ -513,11 +505,11 @@ public class LifxLightCommunicationHandler {
                 }
             }
         } catch (Exception e) {
-            logger.error("An exception occurred while sending a packet to the bulb : '{}'", e.getMessage());
+            logger.error("An exception occurred while sending a packet to the light : '{}'", e.getMessage());
         } finally {
 
             if (selectedKey == unicastKey) {
-                LifxNetworkThrottler.unlock(macAsHex);
+                LifxNetworkThrottler.unlock(macAddress);
             } else {
                 LifxNetworkThrottler.unlock();
             }

@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@ package org.eclipse.smarthome.core.thing.internal;
 import java.util.Collection;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.eclipse.smarthome.config.core.Configuration;
@@ -269,6 +270,15 @@ public class ThingRegistryImpl extends AbstractRegistry<Thing, ThingUID, ThingPr
 
     protected void removeThingHandlerFactory(ThingHandlerFactory thingHandlerFactory) {
         this.thingHandlerFactories.remove(thingHandlerFactory);
+    }
+
+    public Provider<Thing> getProvider(Thing thing) {
+        for (Entry<Provider<Thing>, Collection<Thing>> entry : elementMap.entrySet()) {
+            if (entry.getValue().contains(thing)) {
+                return entry.getKey();
+            }
+        }
+        return null;
     }
 
 }

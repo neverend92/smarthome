@@ -1,5 +1,5 @@
 /**
- * Copyright (c) 2014-2016 by the respective copyright holders.
+ * Copyright (c) 2014-2017 by the respective copyright holders.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -53,7 +53,7 @@ import com.google.common.collect.Lists;
 import com.google.inject.Injector;
 
 /**
- * This class is the core of the openHAB rule engine.
+ * This class is the core of the Eclipse SmartHome rule engine.
  * It listens to changes to the rules folder, evaluates the trigger conditions of the rules and
  * schedules them for execution dependent on their triggering conditions.
  *
@@ -342,8 +342,8 @@ public class RuleEngineImpl implements ItemRegistryChangeListener, StateChangeLi
     }
 
     /**
-     * we need to be able to deactivate the rule execution, otherwise the openHAB designer
-     * would also execute the rules.
+     * we need to be able to deactivate the rule execution, otherwise the Eclipse SmartHome designer would also execute
+     * the rules.
      *
      * @return true, if rules should be executed, false otherwise
      */
